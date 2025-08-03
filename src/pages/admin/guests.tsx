@@ -15,7 +15,7 @@ export default function AdminGuestsPage() {
   const [editGuest, setEditGuest] = useState<Guest|null>(null);
 
   if (loading || !user) return <p className="p-12 text-center">Loading...</p>;
-  if (user.role !== 'admin') return <p>Not authorized</p>;
+  if (user.role !== 'ADMIN') return <p>Not authorized</p>;
 
   function handleCreate() { setEditGuest(null); setModalOpen(true); }
   function handleSave(data: { guestName: string; tableName: string; isPaid: boolean }) {

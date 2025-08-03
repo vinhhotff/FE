@@ -117,6 +117,7 @@ __turbopack_context__.s({
     "login": ()=>login,
     "loginStaff": ()=>loginStaff,
     "refresh": ()=>refresh,
+    "testConnection": ()=>testConnection,
     "updateGuest": ()=>updateGuest,
     "updateMenuItem": ()=>updateMenuItem,
     "updateOrder": ()=>updateOrder,
@@ -129,10 +130,29 @@ var __turbopack_async_dependencies__ = __turbopack_handle_async_dependencies__([
 ]);
 [__TURBOPACK__imported__module__$5b$externals$5d2f$axios__$5b$external$5d$__$28$axios$2c$__esm_import$29$__] = __turbopack_async_dependencies__.then ? (await __turbopack_async_dependencies__)() : __turbopack_async_dependencies__;
 ;
+console.log('API Base URL:', ("TURBOPACK compile-time value", "http://localhost:8083/api/v1"));
 const api = __TURBOPACK__imported__module__$5b$externals$5d2f$axios__$5b$external$5d$__$28$axios$2c$__esm_import$29$__["default"].create({
-    baseURL: ("TURBOPACK compile-time value", "http://localhost:8083/apt/v1"),
+    baseURL: ("TURBOPACK compile-time value", "http://localhost:8083/api/v1"),
     withCredentials: true
 });
+// Add request interceptor for debugging
+api.interceptors.request.use((config)=>{
+    console.log('Making API request to:', config.baseURL + config.url);
+    console.log('Request data:', config.data);
+    return config;
+}, (error)=>{
+    console.error('Request error:', error);
+    return Promise.reject(error);
+});
+// Add response interceptor for debugging
+api.interceptors.response.use((response)=>{
+    console.log('API response:', response.status, response.data);
+    return response;
+}, (error)=>{
+    console.error('API error:', error.response?.status, error.response?.data);
+    return Promise.reject(error);
+});
+const testConnection = ()=>api.get('/');
 const login = (data)=>api.post('/auth/login', data);
 const loginStaff = (data)=>api.post('/auth/login-staff', data);
 const refresh = ()=>api.post('/auth/refresh');
@@ -254,7 +274,7 @@ var __turbopack_async_dependencies__ = __turbopack_handle_async_dependencies__([
 const AuthContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["createContext"])(undefined);
 const useAuth = ()=>{
     const ctx = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useContext"])(AuthContext);
-    if (!ctx) throw new Error('useAuth must be used in AuthProvider');
+    if (!ctx) throw new Error('useAuth must be used within AuthProvider');
     return ctx;
 };
 function AuthProvider({ children }) {
@@ -265,53 +285,74 @@ function AuthProvider({ children }) {
             setLoading(true);
             try {
                 const res = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$ssr$5d$__$28$ecmascript$29$__["refresh"])();
-                if (res.data && res.data.user) setUser(res.data.user);
-                else setUser(null);
+                if (res.data && res.data.user) {
+                    setUser(res.data.user);
+                    // Store user in localStorage for persistence
+                    localStorage.setItem('user', JSON.stringify(res.data.user));
+                } else {
+                    setUser(null);
+                    localStorage.removeItem('user');
+                }
             } catch  {
                 setUser(null);
+                localStorage.removeItem('user');
             }
             setLoading(false);
         }
+        // Check localStorage first for faster initial load
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            try {
+                setUser(JSON.parse(storedUser));
+            } catch  {
+                localStorage.removeItem('user');
+            }
+        }
         checkAuth();
     }, []);
-    async function loginAdmin(data) {
+    async function loginUser(data) {
         try {
             const res = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$ssr$5d$__$28$ecmascript$29$__["login"])(data);
-            if (res.data && res.data.user) {
-                setUser(res.data.user);
-                return true;
+            console.log('Login response:', res.data);
+            if (res.data && res.data.data && res.data.data.user) {
+                const userData = res.data.data.user;
+                const accessToken = res.data.data.accessToken;
+                // Store user data and token
+                setUser(userData);
+                localStorage.setItem('user', JSON.stringify(userData));
+                localStorage.setItem('accessToken', accessToken);
+                // Convert role to lowercase for consistency
+                const role = userData.role.toLowerCase();
+                return {
+                    success: true,
+                    role
+                };
             }
-        } catch  {}
-        return false;
-    }
-    async function loginStaffFunc(data) {
-        try {
-            const res = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$ssr$5d$__$28$ecmascript$29$__["loginStaff"])(data);
-            if (res.data && res.data.user) {
-                setUser(res.data.user);
-                return true;
-            }
-        } catch  {}
-        return false;
+        } catch (error) {
+            console.error('Login failed:', error);
+        }
+        return {
+            success: false
+        };
     }
     function logout() {
-        __TURBOPACK__imported__module__$5b$externals$5d2f$js$2d$cookie__$5b$external$5d$__$28$js$2d$cookie$2c$__esm_import$29$__["default"].remove(("TURBOPACK compile-time value", "jwt"));
+        __TURBOPACK__imported__module__$5b$externals$5d2f$js$2d$cookie__$5b$external$5d$__$28$js$2d$cookie$2c$__esm_import$29$__["default"].remove(("TURBOPACK compile-time value", "123123"));
         setUser(null);
-        window.location.href = '/admin/login';
+        localStorage.removeItem('user');
+        window.location.href = '/login';
     }
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(AuthContext.Provider, {
         value: {
             user,
             loading,
-            loginAdmin,
-            loginStaff: loginStaffFunc,
+            login: loginUser,
             logout
         },
         children: children
     }, void 0, false, {
         fileName: "[project]/src/contexts/AuthContext.tsx",
-        lineNumber: 62,
-        columnNumber: 10
+        lineNumber: 92,
+        columnNumber: 5
     }, this);
 }
 __turbopack_async_result__();

@@ -15,7 +15,7 @@ export default function AdminPaymentsPage() {
   const [editPayment, setEditPayment] = useState<Payment|null>(null);
 
   if (loading || !user) return <p className="p-12 text-center">Loading...</p>;
-  if (user.role !== 'admin') return <p>Not authorized</p>;
+  if (user.role !== 'ADMIN') return <p>Not authorized</p>;
   function handleCreate() { setEditPayment(null); setModalOpen(true); }
   function handleSave(data: { guest: string; amount: number; method: Payment['method'] }) {
     if (editPayment) updatePayment.mutate({ id: editPayment._id, ...data });

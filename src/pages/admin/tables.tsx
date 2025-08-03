@@ -15,7 +15,7 @@ export default function AdminTablesPage() {
   const [editTable, setEditTable] = useState<Table|null>(null);
 
   if (loading || !user) return <p className="p-12 text-center">Loading...</p>;
-  if (user.role !== 'admin') return <p>Not authorized</p>;
+  if (user.role !== 'ADMIN') return <p>Not authorized</p>;
 
   function handleCreate() { setEditTable(null); setModalOpen(true); }
 

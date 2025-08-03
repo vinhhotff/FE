@@ -1,5 +1,30 @@
 import axios from 'axios';
+
+console.log('API Base URL:', process.env.NEXT_PUBLIC_API_URL);
+
 const api = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_URL, withCredentials: true });
+
+// Add request interceptor for debugging
+api.interceptors.request.use((config) => {
+  console.log('Making API request to:', config.baseURL + config.url);
+  console.log('Request data:', config.data);
+  return config;
+}, (error) => {
+  console.error('Request error:', error);
+  return Promise.reject(error);
+});
+
+// Add response interceptor for debugging
+api.interceptors.response.use((response) => {
+  console.log('API response:', response.status, response.data);
+  return response;
+}, (error) => {
+  console.error('API error:', error.response?.status, error.response?.data);
+  return Promise.reject(error);
+});
+
+// Test endpoint
+export const testConnection = () => api.get('/');
 
 // AUTH
 export const login = (data: { email: string, password: string }) => api.post('/auth/login', data);

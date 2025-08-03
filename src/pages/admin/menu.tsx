@@ -20,7 +20,7 @@ export default function AdminMenuPage() {
   const [editItem, setEditItem] = useState<MenuItem|null>(null);
 
   if (loading || !user) return <p className="p-12 text-center">Loading...</p>;
-  if (user.role !== 'admin') return <p>Not authorized</p>;
+  if (user.role !== 'ADMIN') return <p>Not authorized</p>;
 
   function handleCreate() { setEditItem(null); setModalOpen(true); }
 

@@ -5,7 +5,7 @@ export default function AdminDashboard() {
   const { user, loading, logout } = useAuth();
 
   useEffect(() => {
-    if (!loading && (!user || user.role !== 'admin')) {
+    if (!loading && (!user || user.role !== 'ADMIN')) {
       window.location.href = '/admin/login';
     }
   }, [user, loading]);

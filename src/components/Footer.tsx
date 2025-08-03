@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer className="bg-gray-800 text-white py-8 mt-auto">
+    <section id="about" className="bg-gray-800 text-white py-8 mt-auto">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
@@ -32,6 +32,6 @@ export default function Footer() {
           </p>
         </div>
       </div>
-    </footer>
+    </section>
   );
 }

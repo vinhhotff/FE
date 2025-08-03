@@ -1,12 +1,23 @@
+'use client';
+
 import Link from "next/link";
+import { useMenuItems } from '@/hooks/useMenuItems';
+import { useAuth } from '@/contexts/AuthContext';
+import { useState } from 'react';
+import TestConnection from '@/components/TestConnection';
 
 export default function HomePage() {
-  // Sample menu items for demonstration
-  const sampleMenuItems = [
-    { id: 1, name: "Margherita Pizza", price: 18.99, description: "Fresh mozzarella, tomato sauce, basil" },
-    { id: 2, name: "Pasta Carbonara", price: 22.99, description: "Creamy pasta with pancetta and parmesan" },
-    { id: 3, name: "Tiramisu", price: 8.99, description: "Classic Italian dessert with coffee and mascarpone" }
-  ];
+  const { user } = useAuth();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const { data: menuItems, isLoading, error } = useMenuItems();
+
+  // Get unique categories from menu items
+  const categories = menuItems ? [...new Set(menuItems.map(item => item.category).filter(Boolean))] : [];
+  
+  // Filter menu items based on selected category
+  const filteredMenuItems = selectedCategory 
+    ? menuItems?.filter(item => item.category === selectedCategory)
+    : menuItems;
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -23,6 +34,13 @@ export default function HomePage() {
               View Menu
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Debug Section - Remove this after fixing connection */}
+      <section className="container mx-auto px-4 py-8">
+        <div className="flex justify-center">
+          <TestConnection />
         </div>
       </section>
 
@@ -45,23 +63,106 @@ export default function HomePage() {
       {/* Menu Section */}
       <section id="menu" className="container mx-auto px-4 py-12">
         <h2 className="text-3xl font-bold text-center mb-8">Our Menu</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sampleMenuItems.map((item) => (
-            <div key={item.id} className="bg-white shadow-md rounded-lg overflow-hidden">
+        
+        {/* Category Filter */}
+        {categories.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-2 mb-8">
+            <button
+              onClick={() => setSelectedCategory(null)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${
+                selectedCategory === null
+                  ? 'bg-amber-500 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              All Items
+            </button>
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 capitalize ${
+                  selectedCategory === category
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        )}
+        
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500"></div>
+            <span className="ml-3 text-gray-600">Loading menu items...</span>
+          </div>
+        )}
+        
+        {/* Error State */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <p className="text-red-600 font-medium">Failed to load menu items</p>
+            <p className="text-red-500 text-sm mt-1">Please try refreshing the page</p>
+          </div>
+        )}
+        
+        {/* Empty State */}
+        {!isLoading && !error && filteredMenuItems?.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-600 text-lg">No menu items found</p>
+            {selectedCategory && (
+              <p className="text-gray-500 text-sm mt-2">
+                Try selecting a different category or view all items
+              </p>
+            )}
+          </div>
+        )}
+        
+        {/* Menu Items Grid */}
+        {!isLoading && !error && filteredMenuItems && filteredMenuItems.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredMenuItems.map((item) => (
+            <div key={item._id} className="bg-white shadow-md rounded-lg overflow-hidden">
               <div className="h-48 bg-gradient-to-br from-amber-200 to-orange-300 flex items-center justify-center">
-                <span className="text-gray-600 font-semibold">Food Image</span>
+                <img src={item.image || "placeholder.jpg"} alt={item.name} className="h-full w-full object-cover" />
               </div>
               <div className="p-4">
                 <h3 className="text-xl font-semibold">{item.name}</h3>
                 <p className="text-gray-600 mt-1">${item.price.toFixed(2)}</p>
                 <p className="text-sm text-gray-500 mt-2">{item.description}</p>
-                <button className="mt-4 px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 font-semibold">
-                  Add to Cart
+                <div className="flex items-center justify-between mt-2">
+                  <span className={`text-sm font-medium ${item.isAvailable ? 'text-green-600' : 'text-red-600'}`}>
+                    {item.isAvailable ? '✓ Available' : '✗ Out of Stock'}
+                  </span>
+                  {item.category && (
+                    <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-full">
+                      {item.category}
+                    </span>
+                  )}
+                </div>
+                <button 
+                  className={`mt-4 w-full px-4 py-2 rounded font-semibold transition-colors duration-200 ${
+                    item.isAvailable 
+                      ? 'bg-amber-500 text-white hover:bg-amber-600' 
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                  disabled={!item.isAvailable}
+                >
+                  {item.isAvailable ? 'Add to Cart' : 'Unavailable'}
                 </button>
+                {user && (user.role === 'ADMIN' || user.role === 'STAFF' || user.role === 'admin' || user.role === 'staff') && (
+                  <div className="mt-2 text-xs text-gray-500">
+                    ID: {item._id}
+                  </div>
+                )}
               </div>
             </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Staff Management Section */}
@@ -87,15 +188,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* About Section */}
-      <section id="about" className="container mx-auto px-4 py-12 bg-gray-100">
-        <h2 className="text-3xl font-bold text-center mb-8">About Us</h2>
-        <p className="text-center text-gray-600 max-w-2xl mx-auto">
-          La Bella Vita is a family-owned Italian restaurant dedicated to bringing authentic flavors to your table. Our chefs use only the freshest ingredients to craft dishes that warm the heart and soul.
-        </p>
-      </section>
-
-  
     </div>
   );
 }

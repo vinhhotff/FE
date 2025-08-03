@@ -55,12 +55,13 @@ export interface Table {
 }
 
 export interface User {
-  _id: string;
+  id?: string;
+  _id?: string;
   email: string;
   name: string;
-  role: 'admin' | 'staff';
-  createdAt: string;
-  updatedAt: string;
+  role: 'ADMIN' | 'STAFF' | 'USER' | 'admin' | 'staff' | 'user';
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Frontend Types
@@ -139,5 +140,5 @@ export interface PaymentFormData {
   method: 'cash' | 'QR' | 'card';
 }
 
-export type Role = 'admin' | 'staff' | 'guest';
+export type Role = 'ADMIN' | 'STAFF' | 'GUEST';
 
