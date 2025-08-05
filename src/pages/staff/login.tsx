@@ -2,21 +2,29 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function StaffLoginPage() {
   const { loginStaff } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true); setError('');
-    const ok = await loginStaff({ email, password });
-    setLoading(false);
-    if (!ok) setError('Login failed. Check your credentials.');
-    else window.location.href = '/staff';
+    setLoading(true);
+    
+    try {
+      const ok = await loginStaff({ email, password });
+      if (ok) {
+        window.location.href = '/staff';
+      }
+      // Error handling is now done in AuthContext with toast
+    } catch (error) {
+      toast.error('An unexpected error occurred. Please try again.');
+      console.error('Staff login error:', error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -44,7 +52,6 @@ export default function StaffLoginPage() {
             className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500" 
           />
         </label>
-        {error && <div className="mb-2 text-red-600">{error}</div>}
         <button 
           type="submit" 
           disabled={loading} 

@@ -480,16 +480,19 @@ __turbopack_context__.s({
     "createOrder": ()=>createOrder,
     "createPayment": ()=>createPayment,
     "createTable": ()=>createTable,
+    "createUser": ()=>createUser,
     "deleteGuest": ()=>deleteGuest,
     "deleteMenuItem": ()=>deleteMenuItem,
     "deleteOrder": ()=>deleteOrder,
     "deletePayment": ()=>deletePayment,
     "deleteTable": ()=>deleteTable,
+    "deleteUser": ()=>deleteUser,
     "fetchGuests": ()=>fetchGuests,
     "fetchMenuItems": ()=>fetchMenuItems,
     "fetchOrders": ()=>fetchOrders,
     "fetchPayments": ()=>fetchPayments,
     "fetchTables": ()=>fetchTables,
+    "fetchUsers": ()=>fetchUsers,
     "getGuest": ()=>getGuest,
     "getGuests": ()=>getGuests,
     "getMenuItem": ()=>getMenuItem,
@@ -500,15 +503,21 @@ __turbopack_context__.s({
     "getPayments": ()=>getPayments,
     "getTable": ()=>getTable,
     "getTables": ()=>getTables,
+    "getTodayStats": ()=>getTodayStats,
+    "getUser": ()=>getUser,
+    "getUsers": ()=>getUsers,
+    "getWeeklyTrends": ()=>getWeeklyTrends,
     "login": ()=>login,
     "loginStaff": ()=>loginStaff,
+    "logout": ()=>logout,
     "refresh": ()=>refresh,
     "testConnection": ()=>testConnection,
     "updateGuest": ()=>updateGuest,
     "updateMenuItem": ()=>updateMenuItem,
     "updateOrder": ()=>updateOrder,
     "updatePayment": ()=>updatePayment,
-    "updateTable": ()=>updateTable
+    "updateTable": ()=>updateTable,
+    "updateUser": ()=>updateUser
 });
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$client$5d$__$28$ecmascript$29$__ = /*#__PURE__*/ __turbopack_context__.i("[project]/node_modules/next/dist/build/polyfills/process.js [client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/axios/lib/axios.js [client] (ecmascript)");
@@ -532,14 +541,23 @@ api.interceptors.response.use((response)=>{
     console.log('API response:', response.status, response.data);
     return response;
 }, (error)=>{
-    var _error_response, _error_response1;
+    var _error_response, _error_response1, _error_config_url, _error_config, _error_response2, _error_response3;
     console.error('API error:', (_error_response = error.response) === null || _error_response === void 0 ? void 0 : _error_response.status, (_error_response1 = error.response) === null || _error_response1 === void 0 ? void 0 : _error_response1.data);
+    // For authentication endpoints, don't re-throw certain errors
+    // Let the calling code handle them gracefully
+    if (((_error_config = error.config) === null || _error_config === void 0 ? void 0 : (_error_config_url = _error_config.url) === null || _error_config_url === void 0 ? void 0 : _error_config_url.includes('/auth/login')) && (((_error_response2 = error.response) === null || _error_response2 === void 0 ? void 0 : _error_response2.status) === 400 || ((_error_response3 = error.response) === null || _error_response3 === void 0 ? void 0 : _error_response3.status) === 401)) {
+        console.log('Authentication error intercepted, allowing graceful handling');
+        return Promise.resolve({
+            error: error.response
+        }); // Resolve instead of reject for specific authentication errors
+    }
     return Promise.reject(error);
 });
 const testConnection = ()=>api.get('/');
 const login = (data)=>api.post('/auth/login', data);
 const loginStaff = (data)=>api.post('/auth/login-staff', data);
-const refresh = ()=>api.post('/auth/refresh');
+const refresh = ()=>api.get('/auth/refresh');
+const logout = ()=>api.post('/auth/logout');
 const createGuest = (data)=>api.post('/guest', data);
 const getGuests = (params)=>api.get('/guest', {
         params
@@ -554,13 +572,13 @@ const getOrders = (params)=>api.get('/order', {
 const getOrder = (id)=>api.get("/order/".concat(id));
 const updateOrder = (id, data)=>api.patch("/order/".concat(id), data);
 const deleteOrder = (id)=>api.delete("/order/".concat(id));
-const getMenuItems = (params)=>api.get('/menu-item', {
+const getMenuItems = (params)=>api.get('/menu-items', {
         params
     });
-const getMenuItem = (id)=>api.get("/menu-item/".concat(id));
-const createMenuItem = (data)=>api.post('/menu-item', data);
-const updateMenuItem = (id, data)=>api.patch("/menu-item/".concat(id), data);
-const deleteMenuItem = (id)=>api.delete("/menu-item/".concat(id));
+const getMenuItem = (id)=>api.get("/menu-items/".concat(id));
+const createMenuItem = (data)=>api.post('/menu-items', data);
+const updateMenuItem = (id, data)=>api.patch("/menu-items/".concat(id), data);
+const deleteMenuItem = (id)=>api.delete("/menu-items/".concat(id));
 const getPayments = (params)=>api.get('/payment', {
         params
     });
@@ -575,6 +593,15 @@ const getTable = (id)=>api.get("/table/".concat(id));
 const createTable = (data)=>api.post('/table', data);
 const updateTable = (id, data)=>api.patch("/table/".concat(id), data);
 const deleteTable = (id)=>api.delete("/table/".concat(id));
+const getUsers = (params)=>api.get('/user', {
+        params
+    });
+const getUser = (id)=>api.get("/user/".concat(id));
+const createUser = (data)=>api.post('/user', data);
+const updateUser = (id, data)=>api.patch("/user/".concat(id), data);
+const deleteUser = (id)=>api.delete("/user/".concat(id));
+const getTodayStats = ()=>api.get('/analytics/today');
+const getWeeklyTrends = ()=>api.get('/analytics/weekly-trends');
 const fetchTables = async ()=>{
     try {
         const response = await getTables({});
@@ -620,6 +647,15 @@ const fetchGuests = async ()=>{
         return [];
     }
 };
+const fetchUsers = async ()=>{
+    try {
+        const response = await getUsers({});
+        return response.data.data || [];
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        return [];
+    }
+};
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(module, globalThis.$RefreshHelpers$);
 }
@@ -638,9 +674,11 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2f$jsx
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2f$index$2e$js__$5b$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/react/index.js [client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/services/api.ts [client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/js-cookie/dist/js.cookie.mjs [client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/react-hot-toast/dist/index.mjs [client] (ecmascript)");
 ;
 var _s = __turbopack_context__.k.signature(), _s1 = __turbopack_context__.k.signature();
 'use client';
+;
 ;
 ;
 ;
@@ -661,38 +699,159 @@ function AuthProvider(param) {
         "AuthProvider.useEffect": ()=>{
             async function checkAuth() {
                 setLoading(true);
-                try {
-                    const res = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$client$5d$__$28$ecmascript$29$__["refresh"])();
-                    if (res.data && res.data.user) {
-                        setUser(res.data.user);
-                        // Store user in localStorage for persistence
-                        localStorage.setItem('user', JSON.stringify(res.data.user));
-                    } else {
-                        setUser(null);
+                // Check localStorage first for faster initial load
+                const storedUser = localStorage.getItem('user');
+                const storedToken = localStorage.getItem('accessToken');
+                if (storedUser && storedToken) {
+                    try {
+                        setUser(JSON.parse(storedUser));
+                        setLoading(false);
+                        return; // Không cần gọi refresh nữa
+                    } catch (e) {
                         localStorage.removeItem('user');
+                        localStorage.removeItem('accessToken');
                     }
-                } catch (e) {
-                    setUser(null);
-                    localStorage.removeItem('user');
+                }
+                // Nếu không có stored data thì thử refresh từ backend
+                if (!storedUser || !storedToken) {
+                    try {
+                        const res = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$client$5d$__$28$ecmascript$29$__["refresh"])();
+                        if (res.data && res.data.data && res.data.data.user) {
+                            const userData = res.data.data.user;
+                            const accessToken = res.data.data.accessToken;
+                            setUser(userData);
+                            localStorage.setItem('user', JSON.stringify(userData));
+                            localStorage.setItem('accessToken', accessToken);
+                        } else {
+                            setUser(null);
+                        }
+                    } catch (e) {
+                        // Nếu refresh fail thì user chưa login
+                        setUser(null);
+                    }
                 }
                 setLoading(false);
-            }
-            // Check localStorage first for faster initial load
-            const storedUser = localStorage.getItem('user');
-            if (storedUser) {
-                try {
-                    setUser(JSON.parse(storedUser));
-                } catch (e) {
-                    localStorage.removeItem('user');
-                }
             }
             checkAuth();
         }
     }["AuthProvider.useEffect"], []);
     async function loginUser(data) {
+        // Wrap everything in a try-catch to absolutely prevent any errors from escaping
+        try {
+            console.log('Starting login process...');
+            try {
+                const res = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$client$5d$__$28$ecmascript$29$__["login"])(data);
+                console.log('Login response:', res.data);
+                if (res.data && res.data.data && res.data.data.user) {
+                    const userData = res.data.data.user;
+                    const accessToken = res.data.data.accessToken;
+                    // Store user data and token
+                    setUser(userData);
+                    localStorage.setItem('user', JSON.stringify(userData));
+                    localStorage.setItem('accessToken', accessToken);
+                    // Show success toast
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].success("Welcome back, ".concat(userData.name, "!"));
+                    // Convert role to lowercase for consistency
+                    const role = userData.role.toLowerCase();
+                    return {
+                        success: true,
+                        role
+                    };
+                } else {
+                    // Login failed - wrong credentials
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Invalid email or password. Please try again.');
+                    return {
+                        success: false
+                    };
+                }
+            } catch (apiError) {
+                var _apiError_response, _apiError_response1, _apiError_response2, _apiError_response3, _apiError_message, _apiError_response_data, _apiError_response4;
+                console.error('API Error in loginUser:', apiError);
+                // Handle different error types with more specific error messages
+                if (((_apiError_response = apiError.response) === null || _apiError_response === void 0 ? void 0 : _apiError_response.status) === 400) {
+                    // Bad request - usually invalid credentials
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Invalid email or password. Please try again.');
+                } else if (((_apiError_response1 = apiError.response) === null || _apiError_response1 === void 0 ? void 0 : _apiError_response1.status) === 401) {
+                    // Unauthorized
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Invalid email or password. Please try again.');
+                } else if (((_apiError_response2 = apiError.response) === null || _apiError_response2 === void 0 ? void 0 : _apiError_response2.status) === 403) {
+                    // Forbidden
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Access denied. Please check your credentials.');
+                } else if (((_apiError_response3 = apiError.response) === null || _apiError_response3 === void 0 ? void 0 : _apiError_response3.status) >= 500) {
+                    // Server errors
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Server error. Please try again later.');
+                } else if (apiError.code === 'NETWORK_ERROR' || ((_apiError_message = apiError.message) === null || _apiError_message === void 0 ? void 0 : _apiError_message.includes('Network Error'))) {
+                    // Network errors
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Network error. Please check your connection.');
+                } else if ((_apiError_response4 = apiError.response) === null || _apiError_response4 === void 0 ? void 0 : (_apiError_response_data = _apiError_response4.data) === null || _apiError_response_data === void 0 ? void 0 : _apiError_response_data.message) {
+                    // Custom error message from server
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error(apiError.response.data.message);
+                } else if (apiError.name === 'AxiosError') {
+                    // Generic Axios error
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Login failed. Please check your credentials and try again.');
+                } else {
+                    // Fallback error
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Login failed. Please try again.');
+                }
+                // Always return success: false instead of throwing the error
+                return {
+                    success: false
+                };
+            }
+        } catch (outerError) {
+            // This should never happen, but just in case
+            console.error('Outer error in loginUser:', outerError);
+            __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('An unexpected error occurred. Please try again.');
+            return {
+                success: false
+            };
+        }
+    }
+    async function loginAdmin(data) {
         try {
             const res = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$client$5d$__$28$ecmascript$29$__["login"])(data);
-            console.log('Login response:', res.data);
+            console.log('Admin login response:', res.data);
+            if (res.data && res.data.data && res.data.data.user) {
+                const userData = res.data.data.user;
+                const accessToken = res.data.data.accessToken;
+                // Check if user is admin
+                if (userData.role.toLowerCase() !== 'admin') {
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Access denied. Admin privileges required.');
+                    return false;
+                }
+                // Store user data and token
+                setUser(userData);
+                localStorage.setItem('user', JSON.stringify(userData));
+                localStorage.setItem('accessToken', accessToken);
+                // Show success toast
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].success("Welcome back, Admin ".concat(userData.name, "!"));
+                return true;
+            } else {
+                // Login failed - wrong credentials
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Invalid email or password. Please try again.');
+            }
+        } catch (error) {
+            var _error_response, _error_response1, _error_response2, _error_response3, _error_response_data, _error_response4;
+            console.error('Admin login failed:', error);
+            // Handle different error types
+            if (((_error_response = error.response) === null || _error_response === void 0 ? void 0 : _error_response.status) === 400 || ((_error_response1 = error.response) === null || _error_response1 === void 0 ? void 0 : _error_response1.status) === 401) {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Invalid email or password. Please try again.');
+            } else if (((_error_response2 = error.response) === null || _error_response2 === void 0 ? void 0 : _error_response2.status) === 403) {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Access denied. Admin privileges required.');
+            } else if (((_error_response3 = error.response) === null || _error_response3 === void 0 ? void 0 : _error_response3.status) >= 500) {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Server error. Please try again later.');
+            } else if ((_error_response4 = error.response) === null || _error_response4 === void 0 ? void 0 : (_error_response_data = _error_response4.data) === null || _error_response_data === void 0 ? void 0 : _error_response_data.message) {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error(error.response.data.message);
+            } else {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Login failed. Please try again.');
+            }
+        }
+        return false;
+    }
+    async function loginStaffUser(data) {
+        try {
+            const res = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$client$5d$__$28$ecmascript$29$__["loginStaff"])(data);
+            console.log('Staff login response:', res.data);
             if (res.data && res.data.data && res.data.data.user) {
                 const userData = res.data.data.user;
                 const accessToken = res.data.data.accessToken;
@@ -700,37 +859,66 @@ function AuthProvider(param) {
                 setUser(userData);
                 localStorage.setItem('user', JSON.stringify(userData));
                 localStorage.setItem('accessToken', accessToken);
-                // Convert role to lowercase for consistency
-                const role = userData.role.toLowerCase();
-                return {
-                    success: true,
-                    role
-                };
+                // Show success toast
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].success("Welcome back, ".concat(userData.name, "!"));
+                return true;
+            } else {
+                // Login failed - wrong credentials
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Invalid email or password. Please try again.');
             }
         } catch (error) {
-            console.error('Login failed:', error);
+            var _error_response, _error_response1, _error_response2, _error_response3, _error_response_data, _error_response4;
+            console.error('Staff login failed:', error);
+            // Handle different error types
+            if (((_error_response = error.response) === null || _error_response === void 0 ? void 0 : _error_response.status) === 400 || ((_error_response1 = error.response) === null || _error_response1 === void 0 ? void 0 : _error_response1.status) === 401) {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Invalid email or password. Please try again.');
+            } else if (((_error_response2 = error.response) === null || _error_response2 === void 0 ? void 0 : _error_response2.status) === 403) {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Access denied. Staff privileges required.');
+            } else if (((_error_response3 = error.response) === null || _error_response3 === void 0 ? void 0 : _error_response3.status) >= 500) {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Server error. Please try again later.');
+            } else if ((_error_response4 = error.response) === null || _error_response4 === void 0 ? void 0 : (_error_response_data = _error_response4.data) === null || _error_response_data === void 0 ? void 0 : _error_response_data.message) {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error(error.response.data.message);
+            } else {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Login failed. Please try again.');
+            }
         }
-        return {
-            success: false
-        };
+        return false;
     }
-    function logout() {
+    async function logout(redirectTo) {
+        try {
+            // Call logout API to remove refresh token from server
+            await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$client$5d$__$28$ecmascript$29$__["logout"])();
+            console.log('Logout API called successfully');
+        } catch (error) {
+            console.error('Logout API failed:', error);
+        // Continue with logout process even if API fails
+        }
+        // Clear local storage and cookies
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].remove(("TURBOPACK compile-time value", "123123"));
         setUser(null);
         localStorage.removeItem('user');
-        window.location.href = '/login';
+        localStorage.removeItem('accessToken');
+        // Show success message
+        __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].success('Logged out successfully');
+        // Redirect to specified page or default to login after a short delay to allow toast to be seen
+        const finalRedirectTo = redirectTo || '/login';
+        setTimeout(()=>{
+            window.location.href = finalRedirectTo;
+        }, 1500);
     }
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$client$5d$__$28$ecmascript$29$__["jsxDEV"])(AuthContext.Provider, {
         value: {
             user,
             loading,
             login: loginUser,
+            loginAdmin,
+            loginStaff: loginStaffUser,
             logout
         },
         children: children
     }, void 0, false, {
         fileName: "[project]/src/contexts/AuthContext.tsx",
-        lineNumber: 92,
+        lineNumber: 257,
         columnNumber: 5
     }, this);
 }
@@ -754,28 +942,76 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2f$jsx
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2f$index$2e$js__$5b$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/react/index.js [client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$router$2e$js__$5b$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/router.js [client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$tsx__$5b$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/contexts/AuthContext.tsx [client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/react-hot-toast/dist/index.mjs [client] (ecmascript)");
 ;
 var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
+;
+// Safe wrapper function that absolutely prevents AxiosError from escaping
+const safeLogin = async (loginFn, credentials)=>{
+    try {
+        console.log('Safe login wrapper called');
+        const result = await loginFn(credentials);
+        console.log('Safe login result:', result);
+        return result || {
+            success: false
+        };
+    } catch (error) {
+        console.error('Error caught in safe login wrapper:', error);
+        // Absolutely prevent any error from propagating
+        if (error.name === 'AxiosError') {
+            console.log('AxiosError intercepted in safe wrapper');
+            // Return failure result instead of throwing
+            return {
+                success: false
+            };
+        }
+        // For any other error, also return failure
+        console.error('Non-Axios error in safe wrapper:', error.name, error.message);
+        return {
+            success: false
+        };
+    }
+};
 function LoginPage() {
     _s();
     const { login } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$tsx__$5b$client$5d$__$28$ecmascript$29$__["useAuth"])();
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$router$2e$js__$5b$client$5d$__$28$ecmascript$29$__["useRouter"])();
     const [email, setEmail] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2f$index$2e$js__$5b$client$5d$__$28$ecmascript$29$__["useState"])('');
     const [password, setPassword] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2f$index$2e$js__$5b$client$5d$__$28$ecmascript$29$__["useState"])('');
-    const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2f$index$2e$js__$5b$client$5d$__$28$ecmascript$29$__["useState"])('');
+    const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2f$index$2e$js__$5b$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const handleSubmit = async (event)=>{
         event.preventDefault();
-        setError('');
+        setLoading(true);
+        // Wrap everything in a try-catch with comprehensive error handling
         try {
-            const { success, role } = await login({
-                email,
-                password
-            });
-            if (success && role) {
-                switch(role){
+            console.log('Login form submitted');
+            // Call login with additional error protection
+            let result;
+            try {
+                result = await login({
+                    email,
+                    password
+                });
+                console.log('Login result:', result);
+            } catch (loginError) {
+                console.error('Login call error:', loginError);
+                // If it's an AxiosError, show appropriate message and return early
+                if (loginError.name === 'AxiosError') {
+                    console.log('AxiosError caught in login page, error should be handled in AuthContext');
+                    // Don't show additional error toast, AuthContext should handle it
+                    return;
+                }
+                // For non-Axios errors, show fallback
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('An unexpected error occurred. Please try again.');
+                return;
+            }
+            if (result && result.success && result.role) {
+                // Success - redirect based on role
+                console.log('Login successful, redirecting to:', result.role);
+                switch(result.role){
                     case 'admin':
                         router.push('/admin/dashboard');
                         break;
@@ -786,14 +1022,20 @@ function LoginPage() {
                         router.push('/user/home');
                         break;
                     default:
-                        setError('Unknown role');
+                        __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('Unknown role: ' + result.role);
                 }
             } else {
-                setError('Login failed. Please check your credentials.');
+                console.log('Login failed, result:', result);
+            // If result.success is false, error toast is already shown in AuthContext
             }
-        } catch (error) {
-            setError('An error occurred during login. Please try again.');
-            console.error('Login error:', error);
+        } catch (outerError) {
+            console.error('Outer error in handleSubmit:', outerError);
+            // Final fallback - this should never happen
+            if (outerError.name !== 'AxiosError') {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$client$5d$__$28$ecmascript$29$__["default"].error('An unexpected error occurred. Please try again.');
+            }
+        } finally{
+            setLoading(false);
         }
     };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -806,7 +1048,7 @@ function LoginPage() {
                     children: "Login"
                 }, void 0, false, {
                     fileName: "[project]/src/pages/login.tsx",
-                    lineNumber: 44,
+                    lineNumber: 99,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -821,7 +1063,7 @@ function LoginPage() {
                                     children: "Email"
                                 }, void 0, false, {
                                     fileName: "[project]/src/pages/login.tsx",
-                                    lineNumber: 47,
+                                    lineNumber: 102,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -833,13 +1075,13 @@ function LoginPage() {
                                     required: true
                                 }, void 0, false, {
                                     fileName: "[project]/src/pages/login.tsx",
-                                    lineNumber: 50,
+                                    lineNumber: 105,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/pages/login.tsx",
-                            lineNumber: 46,
+                            lineNumber: 101,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -851,7 +1093,7 @@ function LoginPage() {
                                     children: "Password"
                                 }, void 0, false, {
                                     fileName: "[project]/src/pages/login.tsx",
-                                    lineNumber: 60,
+                                    lineNumber: 115,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -863,51 +1105,44 @@ function LoginPage() {
                                     required: true
                                 }, void 0, false, {
                                     fileName: "[project]/src/pages/login.tsx",
-                                    lineNumber: 63,
+                                    lineNumber: 118,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/pages/login.tsx",
-                            lineNumber: 59,
+                            lineNumber: 114,
                             columnNumber: 11
-                        }, this),
-                        error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                            className: "text-red-500 text-sm mb-4",
-                            children: error
-                        }, void 0, false, {
-                            fileName: "[project]/src/pages/login.tsx",
-                            lineNumber: 72,
-                            columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                             type: "submit",
-                            className: "w-full bg-orange-500 text-white py-2 rounded-lg font-semibold hover:bg-orange-600 focus:outline-none focus:ring focus:ring-orange-200",
-                            children: "Login"
+                            disabled: loading,
+                            className: "w-full bg-orange-500 text-white py-2 rounded-lg font-semibold hover:bg-orange-600 focus:outline-none focus:ring focus:ring-orange-200 disabled:bg-gray-400",
+                            children: loading ? 'Logging in...' : 'Login'
                         }, void 0, false, {
                             fileName: "[project]/src/pages/login.tsx",
-                            lineNumber: 73,
+                            lineNumber: 127,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/pages/login.tsx",
-                    lineNumber: 45,
+                    lineNumber: 100,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/pages/login.tsx",
-            lineNumber: 43,
+            lineNumber: 98,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/pages/login.tsx",
-        lineNumber: 42,
+        lineNumber: 97,
         columnNumber: 5
     }, this);
 }
-_s(LoginPage, "t4sNcx/xoZ2+Pfwjk5saMLlXtoQ=", false, function() {
+_s(LoginPage, "doQUWzOVJNam0h0EPAPcK6BvIdE=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$tsx__$5b$client$5d$__$28$ecmascript$29$__["useAuth"],
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$router$2e$js__$5b$client$5d$__$28$ecmascript$29$__["useRouter"]

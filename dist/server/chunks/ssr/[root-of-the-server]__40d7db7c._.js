@@ -145,16 +145,19 @@ __turbopack_context__.s({
     "createOrder": ()=>createOrder,
     "createPayment": ()=>createPayment,
     "createTable": ()=>createTable,
+    "createUser": ()=>createUser,
     "deleteGuest": ()=>deleteGuest,
     "deleteMenuItem": ()=>deleteMenuItem,
     "deleteOrder": ()=>deleteOrder,
     "deletePayment": ()=>deletePayment,
     "deleteTable": ()=>deleteTable,
+    "deleteUser": ()=>deleteUser,
     "fetchGuests": ()=>fetchGuests,
     "fetchMenuItems": ()=>fetchMenuItems,
     "fetchOrders": ()=>fetchOrders,
     "fetchPayments": ()=>fetchPayments,
     "fetchTables": ()=>fetchTables,
+    "fetchUsers": ()=>fetchUsers,
     "getGuest": ()=>getGuest,
     "getGuests": ()=>getGuests,
     "getMenuItem": ()=>getMenuItem,
@@ -165,15 +168,21 @@ __turbopack_context__.s({
     "getPayments": ()=>getPayments,
     "getTable": ()=>getTable,
     "getTables": ()=>getTables,
+    "getTodayStats": ()=>getTodayStats,
+    "getUser": ()=>getUser,
+    "getUsers": ()=>getUsers,
+    "getWeeklyTrends": ()=>getWeeklyTrends,
     "login": ()=>login,
     "loginStaff": ()=>loginStaff,
+    "logout": ()=>logout,
     "refresh": ()=>refresh,
     "testConnection": ()=>testConnection,
     "updateGuest": ()=>updateGuest,
     "updateMenuItem": ()=>updateMenuItem,
     "updateOrder": ()=>updateOrder,
     "updatePayment": ()=>updatePayment,
-    "updateTable": ()=>updateTable
+    "updateTable": ()=>updateTable,
+    "updateUser": ()=>updateUser
 });
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/axios/lib/axios.js [app-ssr] (ecmascript)");
 ;
@@ -197,12 +206,21 @@ api.interceptors.response.use((response)=>{
     return response;
 }, (error)=>{
     console.error('API error:', error.response?.status, error.response?.data);
+    // For authentication endpoints, don't re-throw certain errors
+    // Let the calling code handle them gracefully
+    if (error.config?.url?.includes('/auth/login') && (error.response?.status === 400 || error.response?.status === 401)) {
+        console.log('Authentication error intercepted, allowing graceful handling');
+        return Promise.resolve({
+            error: error.response
+        }); // Resolve instead of reject for specific authentication errors
+    }
     return Promise.reject(error);
 });
 const testConnection = ()=>api.get('/');
 const login = (data)=>api.post('/auth/login', data);
 const loginStaff = (data)=>api.post('/auth/login-staff', data);
-const refresh = ()=>api.post('/auth/refresh');
+const refresh = ()=>api.get('/auth/refresh');
+const logout = ()=>api.post('/auth/logout');
 const createGuest = (data)=>api.post('/guest', data);
 const getGuests = (params)=>api.get('/guest', {
         params
@@ -217,13 +235,13 @@ const getOrders = (params)=>api.get('/order', {
 const getOrder = (id)=>api.get(`/order/${id}`);
 const updateOrder = (id, data)=>api.patch(`/order/${id}`, data);
 const deleteOrder = (id)=>api.delete(`/order/${id}`);
-const getMenuItems = (params)=>api.get('/menu-item', {
+const getMenuItems = (params)=>api.get('/menu-items', {
         params
     });
-const getMenuItem = (id)=>api.get(`/menu-item/${id}`);
-const createMenuItem = (data)=>api.post('/menu-item', data);
-const updateMenuItem = (id, data)=>api.patch(`/menu-item/${id}`, data);
-const deleteMenuItem = (id)=>api.delete(`/menu-item/${id}`);
+const getMenuItem = (id)=>api.get(`/menu-items/${id}`);
+const createMenuItem = (data)=>api.post('/menu-items', data);
+const updateMenuItem = (id, data)=>api.patch(`/menu-items/${id}`, data);
+const deleteMenuItem = (id)=>api.delete(`/menu-items/${id}`);
 const getPayments = (params)=>api.get('/payment', {
         params
     });
@@ -238,6 +256,15 @@ const getTable = (id)=>api.get(`/table/${id}`);
 const createTable = (data)=>api.post('/table', data);
 const updateTable = (id, data)=>api.patch(`/table/${id}`, data);
 const deleteTable = (id)=>api.delete(`/table/${id}`);
+const getUsers = (params)=>api.get('/user', {
+        params
+    });
+const getUser = (id)=>api.get(`/user/${id}`);
+const createUser = (data)=>api.post('/user', data);
+const updateUser = (id, data)=>api.patch(`/user/${id}`, data);
+const deleteUser = (id)=>api.delete(`/user/${id}`);
+const getTodayStats = ()=>api.get('/analytics/today');
+const getWeeklyTrends = ()=>api.get('/analytics/weekly-trends');
 const fetchTables = async ()=>{
     try {
         const response = await getTables({});
@@ -283,6 +310,15 @@ const fetchGuests = async ()=>{
         return [];
     }
 };
+const fetchUsers = async ()=>{
+    try {
+        const response = await getUsers({});
+        return response.data.data || [];
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        return [];
+    }
+};
 }),
 "[project]/src/contexts/AuthContext.tsx [app-ssr] (ecmascript)": ((__turbopack_context__) => {
 "use strict";
@@ -295,7 +331,9 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/services/api.ts [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/js-cookie/dist/js.cookie.mjs [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/react-hot-toast/dist/index.mjs [app-ssr] (ecmascript)");
 'use client';
+;
 ;
 ;
 ;
@@ -312,37 +350,156 @@ function AuthProvider({ children }) {
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         async function checkAuth() {
             setLoading(true);
-            try {
-                const res = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["refresh"])();
-                if (res.data && res.data.user) {
-                    setUser(res.data.user);
-                    // Store user in localStorage for persistence
-                    localStorage.setItem('user', JSON.stringify(res.data.user));
-                } else {
-                    setUser(null);
+            // Check localStorage first for faster initial load
+            const storedUser = localStorage.getItem('user');
+            const storedToken = localStorage.getItem('accessToken');
+            if (storedUser && storedToken) {
+                try {
+                    setUser(JSON.parse(storedUser));
+                    setLoading(false);
+                    return; // Không cần gọi refresh nữa
+                } catch  {
                     localStorage.removeItem('user');
+                    localStorage.removeItem('accessToken');
                 }
-            } catch  {
-                setUser(null);
-                localStorage.removeItem('user');
+            }
+            // Nếu không có stored data thì thử refresh từ backend
+            if (!storedUser || !storedToken) {
+                try {
+                    const res = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["refresh"])();
+                    if (res.data && res.data.data && res.data.data.user) {
+                        const userData = res.data.data.user;
+                        const accessToken = res.data.data.accessToken;
+                        setUser(userData);
+                        localStorage.setItem('user', JSON.stringify(userData));
+                        localStorage.setItem('accessToken', accessToken);
+                    } else {
+                        setUser(null);
+                    }
+                } catch  {
+                    // Nếu refresh fail thì user chưa login
+                    setUser(null);
+                }
             }
             setLoading(false);
-        }
-        // Check localStorage first for faster initial load
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            try {
-                setUser(JSON.parse(storedUser));
-            } catch  {
-                localStorage.removeItem('user');
-            }
         }
         checkAuth();
     }, []);
     async function loginUser(data) {
+        // Wrap everything in a try-catch to absolutely prevent any errors from escaping
+        try {
+            console.log('Starting login process...');
+            try {
+                const res = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["login"])(data);
+                console.log('Login response:', res.data);
+                if (res.data && res.data.data && res.data.data.user) {
+                    const userData = res.data.data.user;
+                    const accessToken = res.data.data.accessToken;
+                    // Store user data and token
+                    setUser(userData);
+                    localStorage.setItem('user', JSON.stringify(userData));
+                    localStorage.setItem('accessToken', accessToken);
+                    // Show success toast
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].success(`Welcome back, ${userData.name}!`);
+                    // Convert role to lowercase for consistency
+                    const role = userData.role.toLowerCase();
+                    return {
+                        success: true,
+                        role
+                    };
+                } else {
+                    // Login failed - wrong credentials
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('Invalid email or password. Please try again.');
+                    return {
+                        success: false
+                    };
+                }
+            } catch (apiError) {
+                console.error('API Error in loginUser:', apiError);
+                // Handle different error types with more specific error messages
+                if (apiError.response?.status === 400) {
+                    // Bad request - usually invalid credentials
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('Invalid email or password. Please try again.');
+                } else if (apiError.response?.status === 401) {
+                    // Unauthorized
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('Invalid email or password. Please try again.');
+                } else if (apiError.response?.status === 403) {
+                    // Forbidden
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('Access denied. Please check your credentials.');
+                } else if (apiError.response?.status >= 500) {
+                    // Server errors
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('Server error. Please try again later.');
+                } else if (apiError.code === 'NETWORK_ERROR' || apiError.message?.includes('Network Error')) {
+                    // Network errors
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('Network error. Please check your connection.');
+                } else if (apiError.response?.data?.message) {
+                    // Custom error message from server
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error(apiError.response.data.message);
+                } else if (apiError.name === 'AxiosError') {
+                    // Generic Axios error
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('Login failed. Please check your credentials and try again.');
+                } else {
+                    // Fallback error
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('Login failed. Please try again.');
+                }
+                // Always return success: false instead of throwing the error
+                return {
+                    success: false
+                };
+            }
+        } catch (outerError) {
+            // This should never happen, but just in case
+            console.error('Outer error in loginUser:', outerError);
+            __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('An unexpected error occurred. Please try again.');
+            return {
+                success: false
+            };
+        }
+    }
+    async function loginAdmin(data) {
         try {
             const res = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["login"])(data);
-            console.log('Login response:', res.data);
+            console.log('Admin login response:', res.data);
+            if (res.data && res.data.data && res.data.data.user) {
+                const userData = res.data.data.user;
+                const accessToken = res.data.data.accessToken;
+                // Check if user is admin
+                if (userData.role.toLowerCase() !== 'admin') {
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('Access denied. Admin privileges required.');
+                    return false;
+                }
+                // Store user data and token
+                setUser(userData);
+                localStorage.setItem('user', JSON.stringify(userData));
+                localStorage.setItem('accessToken', accessToken);
+                // Show success toast
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].success(`Welcome back, Admin ${userData.name}!`);
+                return true;
+            } else {
+                // Login failed - wrong credentials
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('Invalid email or password. Please try again.');
+            }
+        } catch (error) {
+            console.error('Admin login failed:', error);
+            // Handle different error types
+            if (error.response?.status === 400 || error.response?.status === 401) {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('Invalid email or password. Please try again.');
+            } else if (error.response?.status === 403) {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('Access denied. Admin privileges required.');
+            } else if (error.response?.status >= 500) {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('Server error. Please try again later.');
+            } else if (error.response?.data?.message) {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error(error.response.data.message);
+            } else {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('Login failed. Please try again.');
+            }
+        }
+        return false;
+    }
+    async function loginStaffUser(data) {
+        try {
+            const res = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["loginStaff"])(data);
+            console.log('Staff login response:', res.data);
             if (res.data && res.data.data && res.data.data.user) {
                 const userData = res.data.data.user;
                 const accessToken = res.data.data.accessToken;
@@ -350,37 +507,65 @@ function AuthProvider({ children }) {
                 setUser(userData);
                 localStorage.setItem('user', JSON.stringify(userData));
                 localStorage.setItem('accessToken', accessToken);
-                // Convert role to lowercase for consistency
-                const role = userData.role.toLowerCase();
-                return {
-                    success: true,
-                    role
-                };
+                // Show success toast
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].success(`Welcome back, ${userData.name}!`);
+                return true;
+            } else {
+                // Login failed - wrong credentials
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('Invalid email or password. Please try again.');
             }
         } catch (error) {
-            console.error('Login failed:', error);
+            console.error('Staff login failed:', error);
+            // Handle different error types
+            if (error.response?.status === 400 || error.response?.status === 401) {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('Invalid email or password. Please try again.');
+            } else if (error.response?.status === 403) {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('Access denied. Staff privileges required.');
+            } else if (error.response?.status >= 500) {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('Server error. Please try again later.');
+            } else if (error.response?.data?.message) {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error(error.response.data.message);
+            } else {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].error('Login failed. Please try again.');
+            }
         }
-        return {
-            success: false
-        };
+        return false;
     }
-    function logout() {
+    async function logout(redirectTo) {
+        try {
+            // Call logout API to remove refresh token from server
+            await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["logout"])();
+            console.log('Logout API called successfully');
+        } catch (error) {
+            console.error('Logout API failed:', error);
+        // Continue with logout process even if API fails
+        }
+        // Clear local storage and cookies
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].remove(("TURBOPACK compile-time value", "123123"));
         setUser(null);
         localStorage.removeItem('user');
-        window.location.href = '/login';
+        localStorage.removeItem('accessToken');
+        // Show success message
+        __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$react$2d$hot$2d$toast$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].success('Logged out successfully');
+        // Redirect to specified page or default to login after a short delay to allow toast to be seen
+        const finalRedirectTo = redirectTo || '/login';
+        setTimeout(()=>{
+            window.location.href = finalRedirectTo;
+        }, 1500);
     }
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(AuthContext.Provider, {
         value: {
             user,
             loading,
             login: loginUser,
+            loginAdmin,
+            loginStaff: loginStaffUser,
             logout
         },
         children: children
     }, void 0, false, {
         fileName: "[project]/src/contexts/AuthContext.tsx",
-        lineNumber: 92,
+        lineNumber: 257,
         columnNumber: 5
     }, this);
 }
@@ -395,13 +580,13 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$tanstack$2
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/services/api.ts [app-ssr] (ecmascript)");
 ;
 ;
-function useMenuItems() {
+function useMenuItems(params) {
     return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$tanstack$2f$react$2d$query$2f$build$2f$modern$2f$useQuery$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useQuery"])({
         queryKey: [
-            'menuItems'
+            'menuItems',
+            params
         ],
-        queryFn: ()=>(0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getMenuItems"])({}),
-        select: (res)=>res.data
+        queryFn: ()=>(0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getMenuItems"])(params).then((res)=>res.data.data)
     });
 }
 }),
@@ -419,6 +604,9 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$heroicons$2f$react$2f$24$2f$outline$2f$esm$2f$ChevronDownIcon$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ChevronDownIcon$3e$__ = __turbopack_context__.i("[project]/node_modules/@heroicons/react/24/outline/esm/ChevronDownIcon.js [app-ssr] (ecmascript) <export default as ChevronDownIcon>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$heroicons$2f$react$2f$24$2f$outline$2f$esm$2f$Bars3Icon$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Bars3Icon$3e$__ = __turbopack_context__.i("[project]/node_modules/@heroicons/react/24/outline/esm/Bars3Icon.js [app-ssr] (ecmascript) <export default as Bars3Icon>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$heroicons$2f$react$2f$24$2f$outline$2f$esm$2f$XMarkIcon$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__XMarkIcon$3e$__ = __turbopack_context__.i("[project]/node_modules/@heroicons/react/24/outline/esm/XMarkIcon.js [app-ssr] (ecmascript) <export default as XMarkIcon>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$heroicons$2f$react$2f$24$2f$outline$2f$esm$2f$UserIcon$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__UserIcon$3e$__ = __turbopack_context__.i("[project]/node_modules/@heroicons/react/24/outline/esm/UserIcon.js [app-ssr] (ecmascript) <export default as UserIcon>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$heroicons$2f$react$2f$24$2f$outline$2f$esm$2f$Cog6ToothIcon$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Cog6ToothIcon$3e$__ = __turbopack_context__.i("[project]/node_modules/@heroicons/react/24/outline/esm/Cog6ToothIcon.js [app-ssr] (ecmascript) <export default as Cog6ToothIcon>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$heroicons$2f$react$2f$24$2f$outline$2f$esm$2f$ArrowRightOnRectangleIcon$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowRightOnRectangleIcon$3e$__ = __turbopack_context__.i("[project]/node_modules/@heroicons/react/24/outline/esm/ArrowRightOnRectangleIcon.js [app-ssr] (ecmascript) <export default as ArrowRightOnRectangleIcon>");
 'use client';
 ;
 ;
@@ -430,7 +618,8 @@ function Header() {
     const { user, logout } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useAuth"])();
     const { data: menuItems } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$useMenuItems$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useMenuItems"])();
     const [isMenuOpen, setIsMenuOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
-    const [isDropdownOpen, setIsDropdownOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [isMenuDropdownOpen, setIsMenuDropdownOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [isUserDropdownOpen, setIsUserDropdownOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     // Get unique categories from menu items
     const categories = menuItems ? [
         ...new Set(menuItems.map((item)=>item.category).filter(Boolean))
@@ -458,7 +647,7 @@ function Header() {
                             children: "🍽️ La Bella Vita"
                         }, void 0, false, {
                             fileName: "[project]/src/components/Header.tsx",
-                            lineNumber: 31,
+                            lineNumber: 32,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -470,49 +659,49 @@ function Header() {
                                     children: "Home"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/Header.tsx",
-                                    lineNumber: 37,
+                                    lineNumber: 38,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "relative",
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                            onClick: ()=>setIsDropdownOpen(!isDropdownOpen),
+                                            onClick: ()=>setIsMenuDropdownOpen((open)=>!open),
                                             className: "flex items-center space-x-1 hover:text-orange-200 transition-colors duration-200 font-medium",
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                     children: "Our Menu"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/Header.tsx",
-                                                    lineNumber: 47,
+                                                    lineNumber: 48,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$heroicons$2f$react$2f$24$2f$outline$2f$esm$2f$ChevronDownIcon$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ChevronDownIcon$3e$__["ChevronDownIcon"], {
-                                                    className: `w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`
+                                                    className: `w-4 h-4 transition-transform duration-200 ${isMenuDropdownOpen ? 'rotate-180' : ''}`
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/Header.tsx",
-                                                    lineNumber: 48,
+                                                    lineNumber: 49,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/Header.tsx",
-                                            lineNumber: 43,
+                                            lineNumber: 44,
                                             columnNumber: 15
                                         }, this),
-                                        isDropdownOpen && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        isMenuDropdownOpen && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                             className: "absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50",
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                     onClick: ()=>{
                                                         scrollToMenu();
-                                                        setIsDropdownOpen(false);
+                                                        setIsMenuDropdownOpen(false);
                                                     },
                                                     className: "w-full text-left px-4 py-2 text-gray-800 hover:bg-orange-50 transition-colors duration-200",
                                                     children: "View All Items"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/Header.tsx",
-                                                    lineNumber: 53,
+                                                    lineNumber: 54,
                                                     columnNumber: 19
                                                 }, this),
                                                 categories.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -521,7 +710,7 @@ function Header() {
                                                             className: "my-2"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/Header.tsx",
-                                                            lineNumber: 65,
+                                                            lineNumber: 66,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -529,19 +718,19 @@ function Header() {
                                                             children: "Categories"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/Header.tsx",
-                                                            lineNumber: 66,
+                                                            lineNumber: 67,
                                                             columnNumber: 23
                                                         }, this),
                                                         categories.map((category)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                                 onClick: ()=>{
                                                                     scrollToMenu(category);
-                                                                    setIsDropdownOpen(false);
+                                                                    setIsMenuDropdownOpen(false);
                                                                 },
                                                                 className: "w-full text-left px-4 py-2 text-gray-800 hover:bg-orange-50 transition-colors duration-200 capitalize",
                                                                 children: category
                                                             }, category, false, {
                                                                 fileName: "[project]/src/components/Header.tsx",
-                                                                lineNumber: 70,
+                                                                lineNumber: 71,
                                                                 columnNumber: 25
                                                             }, this))
                                                     ]
@@ -552,7 +741,7 @@ function Header() {
                                                             className: "my-2"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/Header.tsx",
-                                                            lineNumber: 86,
+                                                            lineNumber: 87,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -560,7 +749,7 @@ function Header() {
                                                             children: "Popular Items"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/Header.tsx",
-                                                            lineNumber: 87,
+                                                            lineNumber: 88,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -568,7 +757,7 @@ function Header() {
                                                             children: menuItems.slice(0, 6).map((item)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                                     onClick: ()=>{
                                                                         scrollToMenu();
-                                                                        setIsDropdownOpen(false);
+                                                                        setIsMenuDropdownOpen(false);
                                                                     },
                                                                     className: "w-full text-left px-4 py-2 text-gray-800 hover:bg-orange-50 transition-colors duration-200",
                                                                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -579,7 +768,7 @@ function Header() {
                                                                                 children: item.name
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/components/Header.tsx",
-                                                                                lineNumber: 101,
+                                                                                lineNumber: 102,
                                                                                 columnNumber: 31
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -590,23 +779,23 @@ function Header() {
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "[project]/src/components/Header.tsx",
-                                                                                lineNumber: 102,
+                                                                                lineNumber: 103,
                                                                                 columnNumber: 31
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/components/Header.tsx",
-                                                                        lineNumber: 100,
+                                                                        lineNumber: 101,
                                                                         columnNumber: 29
                                                                     }, this)
                                                                 }, item._id, false, {
                                                                     fileName: "[project]/src/components/Header.tsx",
-                                                                    lineNumber: 92,
+                                                                    lineNumber: 93,
                                                                     columnNumber: 27
                                                                 }, this))
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/components/Header.tsx",
-                                                            lineNumber: 90,
+                                                            lineNumber: 91,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
@@ -614,13 +803,13 @@ function Header() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/Header.tsx",
-                                            lineNumber: 52,
+                                            lineNumber: 53,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/Header.tsx",
-                                    lineNumber: 42,
+                                    lineNumber: 43,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -629,7 +818,7 @@ function Header() {
                                     children: "About"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/Header.tsx",
-                                    lineNumber: 113,
+                                    lineNumber: 114,
                                     columnNumber: 13
                                 }, this),
                                 !user ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -638,58 +827,156 @@ function Header() {
                                     children: "Login"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/Header.tsx",
-                                    lineNumber: 119,
+                                    lineNumber: 120,
                                     columnNumber: 15
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "flex items-center space-x-4",
+                                    className: "relative",
                                     children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                            className: "text-orange-200 font-medium",
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                            onClick: ()=>setIsUserDropdownOpen((prev)=>!prev),
+                                            className: "flex items-center space-x-2 px-3 py-2 bg-orange-600 hover:bg-orange-700 rounded-full text-white font-medium focus:outline-none focus:ring",
                                             children: [
-                                                "Welcome, ",
-                                                user.name
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$heroicons$2f$react$2f$24$2f$outline$2f$esm$2f$UserIcon$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__UserIcon$3e$__["UserIcon"], {
+                                                    className: "w-5 h-5"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/components/Header.tsx",
+                                                    lineNumber: 132,
+                                                    columnNumber: 19
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    className: "hidden md:inline-block",
+                                                    children: user.name
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/components/Header.tsx",
+                                                    lineNumber: 133,
+                                                    columnNumber: 19
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$heroicons$2f$react$2f$24$2f$outline$2f$esm$2f$ChevronDownIcon$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ChevronDownIcon$3e$__["ChevronDownIcon"], {
+                                                    className: `w-4 h-4 transition-transform duration-200 ${isUserDropdownOpen ? 'rotate-180' : ''}`
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/components/Header.tsx",
+                                                    lineNumber: 134,
+                                                    columnNumber: 19
+                                                }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/Header.tsx",
-                                            lineNumber: 127,
+                                            lineNumber: 128,
                                             columnNumber: 17
                                         }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                            className: "bg-orange-600 px-2 py-1 rounded-full text-xs font-semibold",
-                                            children: user.role
-                                        }, void 0, false, {
+                                        isUserDropdownOpen && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white text-gray-800 z-50 animate-fade-in",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    className: "px-4 pt-4 pb-2 border-b",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            className: "font-semibold",
+                                                            children: user.name
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/components/Header.tsx",
+                                                            lineNumber: 139,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            className: "text-xs text-gray-400",
+                                                            children: user.role
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/components/Header.tsx",
+                                                            lineNumber: 140,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            className: "text-xs text-gray-400",
+                                                            children: user.email
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/components/Header.tsx",
+                                                            lineNumber: 141,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/src/components/Header.tsx",
+                                                    lineNumber: 138,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
+                                                    className: "py-2",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                                                                href: user.role === 'admin' || user.role === 'ADMIN' ? '/admin/dashboard' : user.role === 'staff' || user.role === 'STAFF' ? '/staff/dashboard' : '/user/home',
+                                                                className: "flex items-center px-4 py-2 hover:bg-orange-50 transition",
+                                                                onClick: ()=>setIsUserDropdownOpen(false),
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$heroicons$2f$react$2f$24$2f$outline$2f$esm$2f$Cog6ToothIcon$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Cog6ToothIcon$3e$__["Cog6ToothIcon"], {
+                                                                        className: "w-4 h-4 mr-2"
+                                                                    }, void 0, false, {
+                                                                        fileName: "[project]/src/components/Header.tsx",
+                                                                        lineNumber: 154,
+                                                                        columnNumber: 27
+                                                                    }, this),
+                                                                    " Dashboard"
+                                                                ]
+                                                            }, void 0, true, {
+                                                                fileName: "[project]/src/components/Header.tsx",
+                                                                lineNumber: 145,
+                                                                columnNumber: 25
+                                                            }, this)
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/components/Header.tsx",
+                                                            lineNumber: 144,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                                onClick: ()=>{
+                                                                    setIsUserDropdownOpen(false);
+                                                                    logout();
+                                                                },
+                                                                className: "flex items-center w-full px-4 py-2 text-left hover:bg-orange-50 transition",
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$heroicons$2f$react$2f$24$2f$outline$2f$esm$2f$ArrowRightOnRectangleIcon$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowRightOnRectangleIcon$3e$__["ArrowRightOnRectangleIcon"], {
+                                                                        className: "w-4 h-4 mr-2"
+                                                                    }, void 0, false, {
+                                                                        fileName: "[project]/src/components/Header.tsx",
+                                                                        lineNumber: 164,
+                                                                        columnNumber: 27
+                                                                    }, this),
+                                                                    " Logout"
+                                                                ]
+                                                            }, void 0, true, {
+                                                                fileName: "[project]/src/components/Header.tsx",
+                                                                lineNumber: 158,
+                                                                columnNumber: 25
+                                                            }, this)
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/components/Header.tsx",
+                                                            lineNumber: 157,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/src/components/Header.tsx",
+                                                    lineNumber: 143,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
                                             fileName: "[project]/src/components/Header.tsx",
-                                            lineNumber: 130,
-                                            columnNumber: 17
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
-                                            href: user.role === 'admin' || user.role === 'ADMIN' ? '/admin/dashboard' : user.role === 'staff' || user.role === 'STAFF' ? '/staff/dashboard' : '/user/home',
-                                            className: "hover:text-orange-200 transition-colors duration-200 font-medium",
-                                            children: "Dashboard"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/Header.tsx",
-                                            lineNumber: 133,
-                                            columnNumber: 17
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                            onClick: logout,
-                                            className: "bg-orange-600 hover:bg-orange-700 px-4 py-2 rounded-lg transition-colors duration-200 font-medium",
-                                            children: "Logout"
-                                        }, void 0, false, {
-                                            fileName: "[project]/src/components/Header.tsx",
-                                            lineNumber: 143,
-                                            columnNumber: 17
+                                            lineNumber: 137,
+                                            columnNumber: 19
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/Header.tsx",
-                                    lineNumber: 126,
+                                    lineNumber: 127,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/Header.tsx",
-                            lineNumber: 36,
+                            lineNumber: 37,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -699,24 +986,24 @@ function Header() {
                                 className: "w-6 h-6"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/Header.tsx",
-                                lineNumber: 159,
+                                lineNumber: 180,
                                 columnNumber: 15
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$heroicons$2f$react$2f$24$2f$outline$2f$esm$2f$Bars3Icon$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Bars3Icon$3e$__["Bars3Icon"], {
                                 className: "w-6 h-6"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/Header.tsx",
-                                lineNumber: 161,
+                                lineNumber: 182,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/components/Header.tsx",
-                            lineNumber: 154,
+                            lineNumber: 175,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/Header.tsx",
-                    lineNumber: 29,
+                    lineNumber: 30,
                     columnNumber: 9
                 }, this),
                 isMenuOpen && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -731,7 +1018,7 @@ function Header() {
                                 children: "Home"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/Header.tsx",
-                                lineNumber: 170,
+                                lineNumber: 191,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -743,7 +1030,7 @@ function Header() {
                                 children: "Our Menu"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/Header.tsx",
-                                lineNumber: 178,
+                                lineNumber: 199,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -753,7 +1040,7 @@ function Header() {
                                 children: "About"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/Header.tsx",
-                                lineNumber: 188,
+                                lineNumber: 209,
                                 columnNumber: 15
                             }, this),
                             !user ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -763,7 +1050,7 @@ function Header() {
                                 children: "Login"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/Header.tsx",
-                                lineNumber: 198,
+                                lineNumber: 219,
                                 columnNumber: 17
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
                                 children: [
@@ -778,7 +1065,7 @@ function Header() {
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/Header.tsx",
-                                        lineNumber: 207,
+                                        lineNumber: 228,
                                         columnNumber: 19
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -788,7 +1075,7 @@ function Header() {
                                         children: "Dashboard"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/Header.tsx",
-                                        lineNumber: 210,
+                                        lineNumber: 231,
                                         columnNumber: 19
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -800,7 +1087,7 @@ function Header() {
                                         children: "Logout"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/Header.tsx",
-                                        lineNumber: 221,
+                                        lineNumber: 242,
                                         columnNumber: 19
                                     }, this)
                                 ]
@@ -808,23 +1095,23 @@ function Header() {
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/Header.tsx",
-                        lineNumber: 169,
+                        lineNumber: 190,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/components/Header.tsx",
-                    lineNumber: 168,
+                    lineNumber: 189,
                     columnNumber: 11
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/Header.tsx",
-            lineNumber: 28,
+            lineNumber: 29,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/components/Header.tsx",
-        lineNumber: 27,
+        lineNumber: 28,
         columnNumber: 5
     }, this);
 }

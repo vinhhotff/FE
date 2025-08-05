@@ -3,14 +3,15 @@
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMenuItems } from '@/hooks/useMenuItems';
-import { useState } from 'react';
-import { ChevronDownIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useState, useRef } from 'react';
+import { ChevronDownIcon, Bars3Icon, XMarkIcon, UserIcon, Cog6ToothIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 
 export default function Header() {
   const { user, logout } = useAuth();
   const { data: menuItems } = useMenuItems();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMenuDropdownOpen, setIsMenuDropdownOpen] = useState(false);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
   // Get unique categories from menu items
   const categories = menuItems ? [...new Set(menuItems.map(item => item.category).filter(Boolean))] : [];
@@ -41,19 +42,19 @@ export default function Header() {
             {/* Menu Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                onClick={() => setIsMenuDropdownOpen(open => !open)}
                 className="flex items-center space-x-1 hover:text-orange-200 transition-colors duration-200 font-medium"
               >
                 <span>Our Menu</span>
-                <ChevronDownIcon className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDownIcon className={`w-4 h-4 transition-transform duration-200 ${isMenuDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               
-              {isDropdownOpen && (
+              {isMenuDropdownOpen && (
                 <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
                   <button
                     onClick={() => {
                       scrollToMenu();
-                      setIsDropdownOpen(false);
+                      setIsMenuDropdownOpen(false);
                     }}
                     className="w-full text-left px-4 py-2 text-gray-800 hover:bg-orange-50 transition-colors duration-200"
                   >
@@ -71,7 +72,7 @@ export default function Header() {
                           key={category}
                           onClick={() => {
                             scrollToMenu(category);
-                            setIsDropdownOpen(false);
+                            setIsMenuDropdownOpen(false);
                           }}
                           className="w-full text-left px-4 py-2 text-gray-800 hover:bg-orange-50 transition-colors duration-200 capitalize"
                         >
@@ -93,7 +94,7 @@ export default function Header() {
                             key={item._id}
                             onClick={() => {
                               scrollToMenu();
-                              setIsDropdownOpen(false);
+                              setIsMenuDropdownOpen(false);
                             }}
                             className="w-full text-left px-4 py-2 text-gray-800 hover:bg-orange-50 transition-colors duration-200"
                           >
@@ -123,29 +124,49 @@ export default function Header() {
                 Login
               </Link>
             ) : (
-              <div className="flex items-center space-x-4">
-                <span className="text-orange-200 font-medium">
-                  Welcome, {user.name}
-                </span>
-                <span className="bg-orange-600 px-2 py-1 rounded-full text-xs font-semibold">
-                  {user.role}
-                </span>
-                <Link
-                  href={
-                    (user.role === 'admin' || user.role === 'ADMIN') ? '/admin/dashboard' :
-                    (user.role === 'staff' || user.role === 'STAFF') ? '/staff/dashboard' :
-                    '/user/home'
-                  }
-                  className="hover:text-orange-200 transition-colors duration-200 font-medium"
-                >
-                  Dashboard
-                </Link>
+              <div className="relative">
                 <button
-                  onClick={logout}
-                  className="bg-orange-600 hover:bg-orange-700 px-4 py-2 rounded-lg transition-colors duration-200 font-medium"
+                  onClick={() => setIsUserDropdownOpen(prev => !prev)}
+                  className="flex items-center space-x-2 px-3 py-2 bg-orange-600 hover:bg-orange-700 rounded-full text-white font-medium focus:outline-none focus:ring"
                 >
-                  Logout
+                  <UserIcon className="w-5 h-5" />
+                  <span className="hidden md:inline-block">{user.name}</span>
+                  <ChevronDownIcon className={`w-4 h-4 transition-transform duration-200 ${isUserDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
+                {isUserDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white text-gray-800 z-50 animate-fade-in">
+                    <div className="px-4 pt-4 pb-2 border-b">
+                      <div className="font-semibold">{user.name}</div>
+                      <div className="text-xs text-gray-400">{user.role}</div>
+                      <div className="text-xs text-gray-400">{user.email}</div>
+                    </div>
+                    <ul className="py-2">
+                      <li>
+                        <Link
+                          href={
+                            (user.role === 'admin' || user.role === 'ADMIN') ? '/admin/dashboard' :
+                            (user.role === 'staff' || user.role === 'STAFF') ? '/staff/dashboard' :
+                            '/user/home'
+                          }
+                          className="flex items-center px-4 py-2 hover:bg-orange-50 transition"
+                          onClick={() => setIsUserDropdownOpen(false)}
+                        >
+                          <Cog6ToothIcon className="w-4 h-4 mr-2" /> Dashboard
+                        </Link>
+                      </li>
+                      <li>
+                        <button
+                          onClick={() => {
+                            setIsUserDropdownOpen(false); logout();
+                          }}
+                          className="flex items-center w-full px-4 py-2 text-left hover:bg-orange-50 transition"
+                        >
+                          <ArrowRightOnRectangleIcon className="w-4 h-4 mr-2" /> Logout
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
           </div>

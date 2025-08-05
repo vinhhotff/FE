@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useMenuItems } from '@/hooks/useMenuItems';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
-import TestConnection from '@/components/TestConnection';
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -40,7 +39,6 @@ export default function HomePage() {
       {/* Debug Section - Remove this after fixing connection */}
       <section className="container mx-auto px-4 py-8">
         <div className="flex justify-center">
-          <TestConnection />
         </div>
       </section>
 

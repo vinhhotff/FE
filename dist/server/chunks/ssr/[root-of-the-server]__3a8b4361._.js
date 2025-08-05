@@ -44,30 +44,79 @@ var __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$run
 var __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/react [external] (react, cjs)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$router$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/router.js [ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$tsx__$5b$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/contexts/AuthContext.tsx [ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$externals$5d2f$react$2d$hot$2d$toast__$5b$external$5d$__$28$react$2d$hot$2d$toast$2c$__esm_import$29$__ = __turbopack_context__.i("[externals]/react-hot-toast [external] (react-hot-toast, esm_import)");
 var __turbopack_async_dependencies__ = __turbopack_handle_async_dependencies__([
-    __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$tsx__$5b$ssr$5d$__$28$ecmascript$29$__
+    __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$tsx__$5b$ssr$5d$__$28$ecmascript$29$__,
+    __TURBOPACK__imported__module__$5b$externals$5d2f$react$2d$hot$2d$toast__$5b$external$5d$__$28$react$2d$hot$2d$toast$2c$__esm_import$29$__
 ]);
-[__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$tsx__$5b$ssr$5d$__$28$ecmascript$29$__] = __turbopack_async_dependencies__.then ? (await __turbopack_async_dependencies__)() : __turbopack_async_dependencies__;
+[__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$tsx__$5b$ssr$5d$__$28$ecmascript$29$__, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2d$hot$2d$toast__$5b$external$5d$__$28$react$2d$hot$2d$toast$2c$__esm_import$29$__] = __turbopack_async_dependencies__.then ? (await __turbopack_async_dependencies__)() : __turbopack_async_dependencies__;
 ;
 ;
 ;
 ;
+;
+// Safe wrapper function that absolutely prevents AxiosError from escaping
+const safeLogin = async (loginFn, credentials)=>{
+    try {
+        console.log('Safe login wrapper called');
+        const result = await loginFn(credentials);
+        console.log('Safe login result:', result);
+        return result || {
+            success: false
+        };
+    } catch (error) {
+        console.error('Error caught in safe login wrapper:', error);
+        // Absolutely prevent any error from propagating
+        if (error.name === 'AxiosError') {
+            console.log('AxiosError intercepted in safe wrapper');
+            // Return failure result instead of throwing
+            return {
+                success: false
+            };
+        }
+        // For any other error, also return failure
+        console.error('Non-Axios error in safe wrapper:', error.name, error.message);
+        return {
+            success: false
+        };
+    }
+};
 function LoginPage() {
     const { login } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$tsx__$5b$ssr$5d$__$28$ecmascript$29$__["useAuth"])();
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$router$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["useRouter"])();
     const [email, setEmail] = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useState"])('');
     const [password, setPassword] = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useState"])('');
-    const [error, setError] = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useState"])('');
+    const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useState"])(false);
     const handleSubmit = async (event)=>{
         event.preventDefault();
-        setError('');
+        setLoading(true);
+        // Wrap everything in a try-catch with comprehensive error handling
         try {
-            const { success, role } = await login({
-                email,
-                password
-            });
-            if (success && role) {
-                switch(role){
+            console.log('Login form submitted');
+            // Call login with additional error protection
+            let result;
+            try {
+                result = await login({
+                    email,
+                    password
+                });
+                console.log('Login result:', result);
+            } catch (loginError) {
+                console.error('Login call error:', loginError);
+                // If it's an AxiosError, show appropriate message and return early
+                if (loginError.name === 'AxiosError') {
+                    console.log('AxiosError caught in login page, error should be handled in AuthContext');
+                    // Don't show additional error toast, AuthContext should handle it
+                    return;
+                }
+                // For non-Axios errors, show fallback
+                __TURBOPACK__imported__module__$5b$externals$5d2f$react$2d$hot$2d$toast__$5b$external$5d$__$28$react$2d$hot$2d$toast$2c$__esm_import$29$__["default"].error('An unexpected error occurred. Please try again.');
+                return;
+            }
+            if (result && result.success && result.role) {
+                // Success - redirect based on role
+                console.log('Login successful, redirecting to:', result.role);
+                switch(result.role){
                     case 'admin':
                         router.push('/admin/dashboard');
                         break;
@@ -78,14 +127,20 @@ function LoginPage() {
                         router.push('/user/home');
                         break;
                     default:
-                        setError('Unknown role');
+                        __TURBOPACK__imported__module__$5b$externals$5d2f$react$2d$hot$2d$toast__$5b$external$5d$__$28$react$2d$hot$2d$toast$2c$__esm_import$29$__["default"].error('Unknown role: ' + result.role);
                 }
             } else {
-                setError('Login failed. Please check your credentials.');
+                console.log('Login failed, result:', result);
+            // If result.success is false, error toast is already shown in AuthContext
             }
-        } catch (error) {
-            setError('An error occurred during login. Please try again.');
-            console.error('Login error:', error);
+        } catch (outerError) {
+            console.error('Outer error in handleSubmit:', outerError);
+            // Final fallback - this should never happen
+            if (outerError.name !== 'AxiosError') {
+                __TURBOPACK__imported__module__$5b$externals$5d2f$react$2d$hot$2d$toast__$5b$external$5d$__$28$react$2d$hot$2d$toast$2c$__esm_import$29$__["default"].error('An unexpected error occurred. Please try again.');
+            }
+        } finally{
+            setLoading(false);
         }
     };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -98,7 +153,7 @@ function LoginPage() {
                     children: "Login"
                 }, void 0, false, {
                     fileName: "[project]/src/pages/login.tsx",
-                    lineNumber: 44,
+                    lineNumber: 99,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("form", {
@@ -113,7 +168,7 @@ function LoginPage() {
                                     children: "Email"
                                 }, void 0, false, {
                                     fileName: "[project]/src/pages/login.tsx",
-                                    lineNumber: 47,
+                                    lineNumber: 102,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("input", {
@@ -125,13 +180,13 @@ function LoginPage() {
                                     required: true
                                 }, void 0, false, {
                                     fileName: "[project]/src/pages/login.tsx",
-                                    lineNumber: 50,
+                                    lineNumber: 105,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/pages/login.tsx",
-                            lineNumber: 46,
+                            lineNumber: 101,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -143,7 +198,7 @@ function LoginPage() {
                                     children: "Password"
                                 }, void 0, false, {
                                     fileName: "[project]/src/pages/login.tsx",
-                                    lineNumber: 60,
+                                    lineNumber: 115,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("input", {
@@ -155,47 +210,40 @@ function LoginPage() {
                                     required: true
                                 }, void 0, false, {
                                     fileName: "[project]/src/pages/login.tsx",
-                                    lineNumber: 63,
+                                    lineNumber: 118,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/pages/login.tsx",
-                            lineNumber: 59,
+                            lineNumber: 114,
                             columnNumber: 11
-                        }, this),
-                        error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("p", {
-                            className: "text-red-500 text-sm mb-4",
-                            children: error
-                        }, void 0, false, {
-                            fileName: "[project]/src/pages/login.tsx",
-                            lineNumber: 72,
-                            columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("button", {
                             type: "submit",
-                            className: "w-full bg-orange-500 text-white py-2 rounded-lg font-semibold hover:bg-orange-600 focus:outline-none focus:ring focus:ring-orange-200",
-                            children: "Login"
+                            disabled: loading,
+                            className: "w-full bg-orange-500 text-white py-2 rounded-lg font-semibold hover:bg-orange-600 focus:outline-none focus:ring focus:ring-orange-200 disabled:bg-gray-400",
+                            children: loading ? 'Logging in...' : 'Login'
                         }, void 0, false, {
                             fileName: "[project]/src/pages/login.tsx",
-                            lineNumber: 73,
+                            lineNumber: 127,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/pages/login.tsx",
-                    lineNumber: 45,
+                    lineNumber: 100,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/pages/login.tsx",
-            lineNumber: 43,
+            lineNumber: 98,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/pages/login.tsx",
-        lineNumber: 42,
+        lineNumber: 97,
         columnNumber: 5
     }, this);
 }
