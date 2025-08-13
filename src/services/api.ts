@@ -55,6 +55,16 @@ export const getOrder = (id: string) => api.get(`/order/${id}`);
 export const updateOrder = (id: string, data: any) => api.patch(`/order/${id}`, data);
 export const deleteOrder = (id: string) => api.delete(`/order/${id}`);
 
+// FILE UPLOAD
+export const uploadFile = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await api.post('/files', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return res.data;
+};
+
 // MENU ITEM
 export const getMenuItems = (params: any) => api.get('/menu-items', { params });
 export const getMenuItem = (id: string) => api.get(`/menu-items/${id}`);

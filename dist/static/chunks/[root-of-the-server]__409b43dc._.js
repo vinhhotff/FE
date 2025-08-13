@@ -480,16 +480,19 @@ __turbopack_context__.s({
     "createOrder": ()=>createOrder,
     "createPayment": ()=>createPayment,
     "createTable": ()=>createTable,
+    "createUser": ()=>createUser,
     "deleteGuest": ()=>deleteGuest,
     "deleteMenuItem": ()=>deleteMenuItem,
     "deleteOrder": ()=>deleteOrder,
     "deletePayment": ()=>deletePayment,
     "deleteTable": ()=>deleteTable,
+    "deleteUser": ()=>deleteUser,
     "fetchGuests": ()=>fetchGuests,
     "fetchMenuItems": ()=>fetchMenuItems,
     "fetchOrders": ()=>fetchOrders,
     "fetchPayments": ()=>fetchPayments,
     "fetchTables": ()=>fetchTables,
+    "fetchUsers": ()=>fetchUsers,
     "getGuest": ()=>getGuest,
     "getGuests": ()=>getGuests,
     "getMenuItem": ()=>getMenuItem,
@@ -500,6 +503,10 @@ __turbopack_context__.s({
     "getPayments": ()=>getPayments,
     "getTable": ()=>getTable,
     "getTables": ()=>getTables,
+    "getTodayStats": ()=>getTodayStats,
+    "getUser": ()=>getUser,
+    "getUsers": ()=>getUsers,
+    "getWeeklyTrends": ()=>getWeeklyTrends,
     "login": ()=>login,
     "loginStaff": ()=>loginStaff,
     "logout": ()=>logout,
@@ -509,7 +516,8 @@ __turbopack_context__.s({
     "updateMenuItem": ()=>updateMenuItem,
     "updateOrder": ()=>updateOrder,
     "updatePayment": ()=>updatePayment,
-    "updateTable": ()=>updateTable
+    "updateTable": ()=>updateTable,
+    "updateUser": ()=>updateUser
 });
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$client$5d$__$28$ecmascript$29$__ = /*#__PURE__*/ __turbopack_context__.i("[project]/node_modules/next/dist/build/polyfills/process.js [client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$axios$2f$lib$2f$axios$2e$js__$5b$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/axios/lib/axios.js [client] (ecmascript)");
@@ -585,6 +593,15 @@ const getTable = (id)=>api.get("/table/".concat(id));
 const createTable = (data)=>api.post('/table', data);
 const updateTable = (id, data)=>api.patch("/table/".concat(id), data);
 const deleteTable = (id)=>api.delete("/table/".concat(id));
+const getUsers = (params)=>api.get('/user', {
+        params
+    });
+const getUser = (id)=>api.get("/user/".concat(id));
+const createUser = (data)=>api.post('/user', data);
+const updateUser = (id, data)=>api.patch("/user/".concat(id), data);
+const deleteUser = (id)=>api.delete("/user/".concat(id));
+const getTodayStats = ()=>api.get('/analytics/today');
+const getWeeklyTrends = ()=>api.get('/analytics/weekly-trends');
 const fetchTables = async ()=>{
     try {
         const response = await getTables({});
@@ -627,6 +644,15 @@ const fetchGuests = async ()=>{
         return response.data.data || [];
     } catch (error) {
         console.error('Error fetching guests:', error);
+        return [];
+    }
+};
+const fetchUsers = async ()=>{
+    try {
+        const response = await getUsers({});
+        return response.data.data || [];
+    } catch (error) {
+        console.error('Error fetching users:', error);
         return [];
     }
 };

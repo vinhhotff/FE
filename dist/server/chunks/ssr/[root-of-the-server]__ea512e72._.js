@@ -65,15 +65,14 @@ function CreateMenuItem() {
     const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$router$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["useRouter"])();
     const { user, logout } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$AuthContext$2e$tsx__$5b$ssr$5d$__$28$ecmascript$29$__["useAuth"])();
     const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useState"])(false);
+    const [isDragOver, setIsDragOver] = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useState"])(false);
     const [formData, setFormData] = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useState"])({
         name: '',
         description: '',
         price: '',
         category: 'appetizer',
-        images: [
-            ''
-        ],
-        available: true
+        images: [],
+        isAvailable: true
     });
     const categories = [
         {
@@ -98,9 +97,12 @@ function CreateMenuItem() {
         try {
             setLoading(true);
             const submitData = {
-                ...formData,
+                name: formData.name,
+                description: formData.description,
                 price: parseFloat(formData.price),
-                images: formData.images.filter((img)=>img.trim() !== '')
+                category: formData.category,
+                images: formData.images,
+                isAvailable: formData.isAvailable
             };
             await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$api$2e$ts__$5b$ssr$5d$__$28$ecmascript$29$__["createMenuItem"])(submitData);
             __TURBOPACK__imported__module__$5b$externals$5d2f$react$2d$hot$2d$toast__$5b$external$5d$__$28$react$2d$hot$2d$toast$2c$__esm_import$29$__["default"].success('Menu item created successfully!');
@@ -112,33 +114,59 @@ function CreateMenuItem() {
             setLoading(false);
         }
     };
-    const handleImageChange = (index, value)=>{
-        const newImages = [
-            ...formData.images
-        ];
-        newImages[index] = value;
-        setFormData({
-            ...formData,
-            images: newImages
-        });
-    };
-    const addImageField = ()=>{
-        setFormData({
-            ...formData,
-            images: [
-                ...formData.images,
-                ''
-            ]
-        });
-    };
-    const removeImageField = (index)=>{
-        const newImages = formData.images.filter((_, i)=>i !== index);
-        setFormData({
-            ...formData,
-            images: newImages.length > 0 ? newImages : [
-                ''
-            ]
-        });
+    const handleDragOver = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useCallback"])((e)=>{
+        e.preventDefault();
+        setIsDragOver(true);
+    }, []);
+    const handleDragLeave = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useCallback"])((e)=>{
+        e.preventDefault();
+        setIsDragOver(false);
+    }, []);
+    const handleDrop = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react__$5b$external$5d$__$28$react$2c$__cjs$29$__["useCallback"])((e)=>{
+        e.preventDefault();
+        setIsDragOver(false);
+        const files = Array.from(e.dataTransfer.files);
+        if (files.length > 0) {
+            const file = files[0];
+            if (file.type.startsWith('image/')) {
+                // Convert to data URL for preview
+                const reader = new FileReader();
+                reader.onload = (event)=>{
+                    if (event.target?.result) {
+                        setFormData({
+                            ...formData,
+                            images: event.target.result
+                        });
+                        __TURBOPACK__imported__module__$5b$externals$5d2f$react$2d$hot$2d$toast__$5b$external$5d$__$28$react$2d$hot$2d$toast$2c$__esm_import$29$__["default"].success('Image uploaded successfully!');
+                    }
+                };
+                reader.readAsDataURL(file);
+            } else {
+                __TURBOPACK__imported__module__$5b$externals$5d2f$react$2d$hot$2d$toast__$5b$external$5d$__$28$react$2d$hot$2d$toast$2c$__esm_import$29$__["default"].error('Please drop an image file');
+            }
+        }
+    }, [
+        formData
+    ]);
+    const handleFileSelect = (e)=>{
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (event)=>{
+                    if (event.target?.result) {
+                        setFormData({
+                            ...formData,
+                            images: event.target.result
+                        });
+                        __TURBOPACK__imported__module__$5b$externals$5d2f$react$2d$hot$2d$toast__$5b$external$5d$__$28$react$2d$hot$2d$toast$2c$__esm_import$29$__["default"].success('Image uploaded successfully!');
+                    }
+                };
+                reader.readAsDataURL(file);
+            } else {
+                __TURBOPACK__imported__module__$5b$externals$5d2f$react$2d$hot$2d$toast__$5b$external$5d$__$28$react$2d$hot$2d$toast$2c$__esm_import$29$__["default"].error('Please select an image file');
+            }
+        }
     };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
         className: "min-h-screen flex bg-gray-100",
@@ -154,14 +182,14 @@ function CreateMenuItem() {
                                 children: "🍽️"
                             }, void 0, false, {
                                 fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                lineNumber: 74,
+                                lineNumber: 114,
                                 columnNumber: 11
                             }, this),
                             " Admin Panel"
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                        lineNumber: 73,
+                        lineNumber: 113,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -173,7 +201,7 @@ function CreateMenuItem() {
                                 children: "Dashboard"
                             }, void 0, false, {
                                 fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                lineNumber: 77,
+                                lineNumber: 117,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$link$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -182,7 +210,7 @@ function CreateMenuItem() {
                                 children: "Menu Items"
                             }, void 0, false, {
                                 fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                lineNumber: 80,
+                                lineNumber: 120,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$link$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -191,7 +219,7 @@ function CreateMenuItem() {
                                 children: "Orders"
                             }, void 0, false, {
                                 fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                lineNumber: 83,
+                                lineNumber: 123,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$link$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -200,7 +228,7 @@ function CreateMenuItem() {
                                 children: "Users"
                             }, void 0, false, {
                                 fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                lineNumber: 86,
+                                lineNumber: 126,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$link$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -209,20 +237,20 @@ function CreateMenuItem() {
                                 children: "Revenue"
                             }, void 0, false, {
                                 fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                lineNumber: 89,
+                                lineNumber: 129,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                        lineNumber: 76,
+                        lineNumber: 116,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("hr", {
                         className: "my-4 border-amber-300"
                     }, void 0, false, {
                         fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                        lineNumber: 93,
+                        lineNumber: 133,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -234,7 +262,7 @@ function CreateMenuItem() {
                                     children: user.name
                                 }, void 0, false, {
                                     fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                    lineNumber: 97,
+                                    lineNumber: 137,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -246,7 +274,7 @@ function CreateMenuItem() {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                    lineNumber: 98,
+                                    lineNumber: 138,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -257,7 +285,7 @@ function CreateMenuItem() {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                    lineNumber: 99,
+                                    lineNumber: 139,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("button", {
@@ -266,20 +294,20 @@ function CreateMenuItem() {
                                     children: "Logout"
                                 }, void 0, false, {
                                     fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                    lineNumber: 100,
+                                    lineNumber: 140,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true)
                     }, void 0, false, {
                         fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                        lineNumber: 94,
+                        lineNumber: 134,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                lineNumber: 72,
+                lineNumber: 112,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("main", {
@@ -296,7 +324,7 @@ function CreateMenuItem() {
                                     children: "← Back to Menu Items"
                                 }, void 0, false, {
                                     fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                    lineNumber: 116,
+                                    lineNumber: 156,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("h1", {
@@ -304,7 +332,7 @@ function CreateMenuItem() {
                                     children: "Create New Menu Item"
                                 }, void 0, false, {
                                     fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                    lineNumber: 122,
+                                    lineNumber: 162,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("p", {
@@ -312,13 +340,13 @@ function CreateMenuItem() {
                                     children: "Add a new delicious item to your menu"
                                 }, void 0, false, {
                                     fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                    lineNumber: 123,
+                                    lineNumber: 163,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                            lineNumber: 115,
+                            lineNumber: 155,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("form", {
@@ -337,13 +365,13 @@ function CreateMenuItem() {
                                                     children: "*"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                                    lineNumber: 131,
+                                                    lineNumber: 171,
                                                     columnNumber: 27
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                            lineNumber: 130,
+                                            lineNumber: 170,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("input", {
@@ -358,13 +386,13 @@ function CreateMenuItem() {
                                             placeholder: "e.g., Margherita Pizza"
                                         }, void 0, false, {
                                             fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                            lineNumber: 133,
+                                            lineNumber: 173,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                    lineNumber: 129,
+                                    lineNumber: 169,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -375,7 +403,7 @@ function CreateMenuItem() {
                                             children: "Description"
                                         }, void 0, false, {
                                             fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                            lineNumber: 145,
+                                            lineNumber: 185,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("textarea", {
@@ -389,13 +417,13 @@ function CreateMenuItem() {
                                             placeholder: "Describe this delicious item..."
                                         }, void 0, false, {
                                             fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                            lineNumber: 148,
+                                            lineNumber: 188,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                    lineNumber: 144,
+                                    lineNumber: 184,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -412,13 +440,13 @@ function CreateMenuItem() {
                                                             children: "*"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                                            lineNumber: 162,
+                                                            lineNumber: 202,
                                                             columnNumber: 25
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                                    lineNumber: 161,
+                                                    lineNumber: 201,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -429,7 +457,7 @@ function CreateMenuItem() {
                                                             children: "$"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                                            lineNumber: 165,
+                                                            lineNumber: 205,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("input", {
@@ -446,19 +474,19 @@ function CreateMenuItem() {
                                                             placeholder: "0.00"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                                            lineNumber: 166,
+                                                            lineNumber: 206,
                                                             columnNumber: 19
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                                    lineNumber: 164,
+                                                    lineNumber: 204,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                            lineNumber: 160,
+                                            lineNumber: 200,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -472,13 +500,13 @@ function CreateMenuItem() {
                                                             children: "*"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                                            lineNumber: 182,
+                                                            lineNumber: 222,
                                                             columnNumber: 28
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                                    lineNumber: 181,
+                                                    lineNumber: 221,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("select", {
@@ -494,24 +522,24 @@ function CreateMenuItem() {
                                                             children: cat.label
                                                         }, cat.value, false, {
                                                             fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                                            lineNumber: 191,
+                                                            lineNumber: 231,
                                                             columnNumber: 21
                                                         }, this))
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                                    lineNumber: 184,
+                                                    lineNumber: 224,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                            lineNumber: 180,
+                                            lineNumber: 220,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                    lineNumber: 158,
+                                    lineNumber: 198,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -519,56 +547,155 @@ function CreateMenuItem() {
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("label", {
                                             className: "block text-sm font-medium text-gray-700 mb-2",
-                                            children: "Image URLs"
+                                            children: "Item images"
                                         }, void 0, false, {
                                             fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                            lineNumber: 201,
+                                            lineNumber: 241,
                                             columnNumber: 15
                                         }, this),
-                                        formData.images.map((image, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
-                                                className: "flex gap-2 mb-2",
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
+                                            className: `border-2 border-dashed rounded-lg p-6 text-center transition-colors ${isDragOver ? 'border-orange-500 bg-orange-50' : 'border-gray-300 hover:border-orange-400'}`,
+                                            onDragOver: handleDragOver,
+                                            onDragLeave: handleDragLeave,
+                                            onDrop: handleDrop,
+                                            children: formData.images ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
+                                                className: "space-y-4",
                                                 children: [
-                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("input", {
-                                                        type: "url",
-                                                        value: image,
-                                                        onChange: (e)=>handleImageChange(index, e.target.value),
-                                                        className: "flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition",
-                                                        placeholder: "https://example.com/image.jpg"
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("img", {
+                                                        src: formData.images,
+                                                        alt: "Preview",
+                                                        className: "mx-auto max-h-48 rounded-lg shadow-md"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                                        lineNumber: 206,
-                                                        columnNumber: 19
+                                                        lineNumber: 258,
+                                                        columnNumber: 21
                                                     }, this),
-                                                    formData.images.length > 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("button", {
-                                                        type: "button",
-                                                        onClick: ()=>removeImageField(index),
-                                                        className: "px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition",
-                                                        children: "Remove"
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
+                                                        className: "flex gap-2 justify-center",
+                                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("button", {
+                                                            type: "button",
+                                                            onClick: ()=>setFormData({
+                                                                    ...formData,
+                                                                    images: ''
+                                                                }),
+                                                            className: "px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition",
+                                                            children: "Remove images"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/src/pages/admin/menu-items/create.tsx",
+                                                            lineNumber: 264,
+                                                            columnNumber: 23
+                                                        }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                                        lineNumber: 214,
+                                                        lineNumber: 263,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
-                                            }, index, true, {
+                                            }, void 0, true, {
                                                 fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                                lineNumber: 205,
-                                                columnNumber: 17
-                                            }, this)),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("button", {
-                                            type: "button",
-                                            onClick: addImageField,
-                                            className: "mt-2 text-sm text-orange-600 hover:text-orange-700 font-medium",
-                                            children: "+ Add another image"
+                                                lineNumber: 257,
+                                                columnNumber: 19
+                                            }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
+                                                className: "space-y-4",
+                                                children: [
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
+                                                        className: "text-6xl text-gray-400",
+                                                        children: "📸"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/src/pages/admin/menu-items/create.tsx",
+                                                        lineNumber: 275,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
+                                                        children: [
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("p", {
+                                                                className: "text-lg font-medium text-gray-700",
+                                                                children: "Drop your images here"
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/pages/admin/menu-items/create.tsx",
+                                                                lineNumber: 277,
+                                                                columnNumber: 23
+                                                            }, this),
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("p", {
+                                                                className: "text-sm text-gray-500 mt-1",
+                                                                children: "or click to browse files"
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/src/pages/admin/menu-items/create.tsx",
+                                                                lineNumber: 280,
+                                                                columnNumber: 23
+                                                            }, this)
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "[project]/src/pages/admin/menu-items/create.tsx",
+                                                        lineNumber: 276,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("input", {
+                                                        type: "file",
+                                                        accept: "image/*",
+                                                        onChange: handleFileSelect,
+                                                        className: "hidden",
+                                                        id: "image-upload"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/src/pages/admin/menu-items/create.tsx",
+                                                        lineNumber: 284,
+                                                        columnNumber: 42
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("label", {
+                                                        htmlFor: "image-upload",
+                                                        className: "inline-block px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition cursor-pointer",
+                                                        children: "Choose File"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/src/pages/admin/menu-items/create.tsx",
+                                                        lineNumber: 291,
+                                                        columnNumber: 42
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/src/pages/admin/menu-items/create.tsx",
+                                                lineNumber: 274,
+                                                columnNumber: 19
+                                            }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                            lineNumber: 224,
+                                            lineNumber: 246,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
+                                            className: "mt-4",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("label", {
+                                                    className: "block text-sm font-medium text-gray-700 mb-2",
+                                                    children: "Or enter images URL"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/pages/admin/menu-items/create.tsx",
+                                                    lineNumber: 303,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("input", {
+                                                    type: "url",
+                                                    value: formData.images,
+                                                    onChange: (e)=>setFormData({
+                                                            ...formData,
+                                                            images: e.target.value
+                                                        }),
+                                                    className: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition",
+                                                    placeholder: "https://example.com/images.jpg"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/src/pages/admin/menu-items/create.tsx",
+                                                    lineNumber: 306,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/src/pages/admin/menu-items/create.tsx",
+                                            lineNumber: 302,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                    lineNumber: 200,
+                                    lineNumber: 240,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -578,15 +705,15 @@ function CreateMenuItem() {
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("input", {
                                                 type: "checkbox",
-                                                checked: formData.available,
+                                                checked: formData.isAvailable,
                                                 onChange: (e)=>setFormData({
                                                         ...formData,
-                                                        available: e.target.checked
+                                                        isAvailable: e.target.checked
                                                     }),
                                                 className: "mr-3 h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                                lineNumber: 236,
+                                                lineNumber: 319,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("span", {
@@ -594,18 +721,18 @@ function CreateMenuItem() {
                                                 children: "Available for ordering"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                                lineNumber: 242,
+                                                lineNumber: 325,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                        lineNumber: 235,
+                                        lineNumber: 318,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                    lineNumber: 234,
+                                    lineNumber: 317,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("div", {
@@ -618,7 +745,7 @@ function CreateMenuItem() {
                                             children: loading ? 'Creating...' : 'Create Menu Item'
                                         }, void 0, false, {
                                             fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                            lineNumber: 250,
+                                            lineNumber: 333,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$link$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -627,36 +754,36 @@ function CreateMenuItem() {
                                             children: "Cancel"
                                         }, void 0, false, {
                                             fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                            lineNumber: 257,
+                                            lineNumber: 340,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                                    lineNumber: 249,
+                                    lineNumber: 332,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                            lineNumber: 127,
+                            lineNumber: 167,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                    lineNumber: 113,
+                    lineNumber: 153,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-                lineNumber: 112,
+                lineNumber: 152,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/pages/admin/menu-items/create.tsx",
-        lineNumber: 70,
+        lineNumber: 110,
         columnNumber: 5
     }, this);
 }

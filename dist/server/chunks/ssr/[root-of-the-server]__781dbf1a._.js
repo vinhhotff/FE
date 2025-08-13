@@ -131,7 +131,8 @@ __turbopack_context__.s({
     "updateOrder": ()=>updateOrder,
     "updatePayment": ()=>updatePayment,
     "updateTable": ()=>updateTable,
-    "updateUser": ()=>updateUser
+    "updateUser": ()=>updateUser,
+    "uploadFile": ()=>uploadFile
 });
 var __TURBOPACK__imported__module__$5b$externals$5d2f$axios__$5b$external$5d$__$28$axios$2c$__esm_import$29$__ = __turbopack_context__.i("[externals]/axios [external] (axios, esm_import)");
 var __turbopack_async_dependencies__ = __turbopack_handle_async_dependencies__([
@@ -188,6 +189,16 @@ const getOrders = (params)=>api.get('/order', {
 const getOrder = (id)=>api.get(`/order/${id}`);
 const updateOrder = (id, data)=>api.patch(`/order/${id}`, data);
 const deleteOrder = (id)=>api.delete(`/order/${id}`);
+const uploadFile = async (file)=>{
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await api.post('/files', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    });
+    return res.data;
+};
 const getMenuItems = (params)=>api.get('/menu-items', {
         params
     });
