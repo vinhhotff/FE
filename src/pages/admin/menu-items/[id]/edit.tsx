@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { getMenuItem, updateMenuItem } from '@/services/api';
+import { getMenuItem } from '@/services/api';
+import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { MenuItem } from '@/types';
 
@@ -78,7 +79,12 @@ export default function EditMenuItem() {
         isAvailable: formData.isAvailable,
       };
       
-      await updateMenuItem(id as string, submitData);
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      await axios.put(`${API_URL}/menu-items/${id}`, submitData, {
+        headers: {
+          'Authorization': `Bearer ${user.token}`,
+        },
+      });
       toast.success('Menu item updated successfully!');
       router.push('/admin/menu-items');
       

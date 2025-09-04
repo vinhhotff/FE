@@ -1,8 +1,1 @@
-{
-  "/_app": "pages/_app.js",
-  "/_document": "pages/_document.js",
-  "/admin/dashboard": "pages/admin/dashboard.js",
-  "/admin/menu-items": "pages/admin/menu-items.js",
-  "/admin/menu-items/[id]/edit": "pages/admin/menu-items/[id]/edit.js",
-  "/admin/menu-items/create": "pages/admin/menu-items/create.js"
-}
+{}

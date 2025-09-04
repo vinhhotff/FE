@@ -24,15 +24,15 @@ export interface Order {
 }
 
 export interface MenuItem {
-  _id: string;
+  _id?: string;
   name: string;
   price: number;
   description: string;
-  isAvailable: boolean;
+  available: boolean;
   category?: string;
-  images?: string;
-  createdAt: string;
-  updatedAt: string;
+  images?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Payment {
@@ -125,8 +125,9 @@ export interface MenuItemFormData {
   name: string;
   price: number;
   description: string;
-  isAvailable: boolean;
+  available: boolean;
   category?: string;
+  images?: string[];
 }
 
 export interface TableFormData {

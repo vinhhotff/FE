@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 5, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/ADmin/Desktop/aaaaaa/frontend/src/pages/admin/menu-items/create.tsx"],"sourcesContent":["import React from 'react';\r\n\r\nconst CreateMenuItem = () => {\r\n    return (\r\n        <div>\r\n            <h1>Create a New Menu Item</h1>\r\n            {/* Add your form or content here */}\r\n        </div>\r\n    );\r\n};\r\n\r\nexport default CreateMenuItem;\r\n\r\n"],"names":[],"mappings":";;;;;AAEA,MAAM,iBAAiB;IACnB,qBACI,qKAAC;kBACG,cAAA,qKAAC;sBAAG;;;;;;;;;;;AAIhB;uCAEe","debugId":null}}]
-}

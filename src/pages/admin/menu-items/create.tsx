@@ -6,19 +6,21 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { createMenuItem, uploadFile } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { MenuItem, MenuItemFormData } from '@/types';
 
 export default function CreateMenuItem() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const [loading, setLoading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     price: '',
     category: 'appetizer',
     images: [] as string[],
-    isAvailable: true,
+    available: true,
   });
 
   const categories = [
@@ -30,26 +32,34 @@ export default function CreateMenuItem() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       setLoading(true);
-      
-             const submitData = {
-         name: formData.name,
-         description: formData.description,
-         price: parseFloat(formData.price),
-         category: formData.category,
-         images: formData.images, // Already an array of ObjectIds
-         isAvailable: formData.isAvailable,
-       };
-      
+
+      const uploadedImageIds = await Promise.all(
+        imageFiles.map(async (file) => {
+          const response = await uploadFile(file);
+          return response.data._id;
+        })
+      );
+
+      const submitData : MenuItem = {
+        name: formData.name,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        category: formData.category,
+        images: uploadedImageIds,
+        available: formData.available,
+      };
+
       await createMenuItem(submitData);
       toast.success('Menu item created successfully!');
       router.push('/admin/menu-items');
-      
-    } catch (error: any) {
+
+    } catch (error: unknown) {
       console.error('Error creating menu item:', error);
-      toast.error(error.response?.data?.message || 'Failed to create menu item');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create menu item';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -65,45 +75,61 @@ export default function CreateMenuItem() {
     setIsDragOver(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-    
+
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      const file = files[0];
-      if (file.type.startsWith('image/')) {
-        // Convert to data URL for preview
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          if (event.target?.result) {
-            setFormData({ ...formData, images: event.target.result as string });
-            toast.success('Image uploaded successfully!');
-          }
-        };
-        reader.readAsDataURL(file);
-      } else {
-        toast.error('Please drop an image file');
-      }
+      handleFiles(files);
     }
-  }, [formData]);
+  }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    if (files.length > 0) {
+      handleFiles(files);
+    }
+  };
+
+  const handleFiles = async (files: File[]) => {
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    if (imageFiles.length === 0) {
+      toast.error('Please select image files');
+      return;
+    }
+
+    setImageFiles(prev => [...prev, ...imageFiles]);
+
+    const uploadPromises = imageFiles.map(file => {
+      const reader = new FileReader();
+      return new Promise<string>((resolve, reject) => {
         reader.onload = (event) => {
           if (event.target?.result) {
-            setFormData({ ...formData, images: event.target.result as string });
-            toast.success('Image uploaded successfully!');
+            resolve(event.target.result as string);
+          } else {
+            reject('Failed to read file');
           }
         };
         reader.readAsDataURL(file);
-      } else {
-        toast.error('Please select an image file');
-      }
+      });
+    });
+
+    try {
+      const base64images = await Promise.all(uploadPromises);
+      setFormData(prev => ({ ...prev, images: [...prev.images, ...base64images] }));
+      toast.success('Images uploaded successfully!');
+    } catch {
+      toast.error('Error uploading images');
     }
+  };
+
+  const removeImage = (index: number) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
   };
 
   return (
@@ -153,8 +179,8 @@ export default function CreateMenuItem() {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <Link 
-              href="/admin/menu-items" 
+            <Link
+              href="/admin/menu-items"
               className="text-orange-600 hover:text-orange-700 mb-4 inline-flex items-center"
             >
               ← Back to Menu Items
@@ -241,33 +267,44 @@ export default function CreateMenuItem() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Item images
               </label>
-              
+
               {/* Drag & Drop Area */}
               <div
-                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                  isDragOver 
-                    ? 'border-orange-500 bg-orange-50' 
+                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${isDragOver
+                    ? 'border-orange-500 bg-orange-50'
                     : 'border-gray-300 hover:border-orange-400'
-                }`}
+                  }`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
-                {formData.images ? (
+                {formData.images.length > 0 ? (
                   <div className="space-y-4">
-                    <img 
-                      src={formData.images} 
-                      alt="Preview" 
-                      className="mx-auto max-h-48 rounded-lg shadow-md"
-                    />
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {formData.images.map((image, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={image}
+                            alt={`Preview ${index}`}
+                            className="w-full h-24 object-cover rounded-lg shadow-md"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs"
+                          >
+                            X
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                     <div className="flex gap-2 justify-center">
-                      <button
-                        type="button"
-                        onClick={() => setFormData({ ...formData, images: '' })}
-                        className="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition"
+                      <label
+                        htmlFor="image-upload"
+                        className="inline-block px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition cursor-pointer"
                       >
-                        Remove images
-                      </button>
+                        Add More
+                      </label>
                     </div>
                   </div>
                 ) : (
@@ -281,35 +318,22 @@ export default function CreateMenuItem() {
                         or click to browse files
                       </p>
                     </div>
-                                         <input
-                       type="file"
-                       accept="image/*"
-                       onChange={handleFileSelect}
-                       className="hidden"
-                       id="image-upload"
-                     />
-                                         <label
-                       htmlFor="image-upload"
-                       className="inline-block px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition cursor-pointer"
-                     >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleFileSelect}
+                      className="hidden"
+                      id="image-upload"
+                    />
+                    <label
+                      htmlFor="image-upload"
+                      className="inline-block px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition cursor-pointer"
+                    >
                       Choose File
                     </label>
                   </div>
                 )}
-              </div>
-              
-              {/* URL Input as Alternative */}
-              <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Or enter images URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.images}
-                  onChange={(e) => setFormData({ ...formData, images: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
-                  placeholder="https://example.com/images.jpg"
-                />
               </div>
             </div>
 
@@ -318,8 +342,8 @@ export default function CreateMenuItem() {
               <label className="flex items-center cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={formData.isAvailable}
-                  onChange={(e) => setFormData({ ...formData, isAvailable: e.target.checked })}
+                  checked={formData.available}
+                  onChange={(e) => setFormData({ ...formData, available: e.target.checked })}
                   className="mr-3 h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
                 />
                 <span className="text-sm font-medium text-gray-700">
@@ -350,4 +374,3 @@ export default function CreateMenuItem() {
     </div>
   );
 }
-

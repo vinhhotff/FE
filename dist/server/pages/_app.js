@@ -1,5 +1,1 @@
-const CHUNK_PUBLIC_PATH = "server/pages/_app.js";
-const runtime = require("../chunks/ssr/[turbopack]_runtime.js");
-runtime.loadChunk("server/chunks/ssr/[root-of-the-server]__781dbf1a._.js");
-runtime.getOrInstantiateRuntimeModule("[project]/src/pages/_app.tsx [ssr] (ecmascript)", CHUNK_PUBLIC_PATH);
-module.exports = runtime.getOrInstantiateRuntimeModule("[project]/src/pages/_app.tsx [ssr] (ecmascript)", CHUNK_PUBLIC_PATH).exports;
+"use strict";(()=>{var a={};a.id=636,a.ids=[636],a.modules={1428:a=>{a.exports=import("axios")},8732:a=>{a.exports=require("react/jsx-runtime")},28462:a=>{a.exports=import("@tanstack/react-query")},42893:a=>{a.exports=import("react-hot-toast")},76338:a=>{a.exports=import("js-cookie")},82015:a=>{a.exports=require("react")}};var b=require("../webpack-runtime.js");b.C(a);var c=b.X(0,[861],()=>b(b.s=56861));module.exports=c})();
